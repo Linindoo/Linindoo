@@ -316,6 +316,7 @@ section .title.about-me::before {
 }
 .icon-container {
     margin-top: 15px;
+    line-height: 160px;
 }
 .icon-container .icon {
     margin-right: 30px;
@@ -328,8 +329,8 @@ section .title.about-me::before {
     height: 30px;
 }
 .qr-image {
-    width: 80px;
-    height: 80px;
+    width: 160px;
+    height: 160px;
 }
 .contact .qrcode {
     border-right: 1px solid #CDD8E1;
