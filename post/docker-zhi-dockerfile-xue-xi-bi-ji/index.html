@@ -1,0 +1,240 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Docker之Dockerfile学习笔记 | Gridea</title>
+<link rel="shortcut icon" href="https://www.52zhoujia.cn/favicon.ico?v=1636452769531">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://www.52zhoujia.cn/styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="Docker之Dockerfile学习笔记 | Gridea - Atom Feed" href="https://www.52zhoujia.cn/atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+
+    <meta name="description" content="Dockerfile是由一组docker命令组成的文件，docker根据Dockerfile文件构建镜像，然后再运行镜像生成相应的容器，按照不同的生命周期可以将命令划分为构建命令和运行命令。
+构建命令
+FROM
+指定镜像作为新镜像的基础命令..." />
+    <meta name="keywords" content="" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://www.52zhoujia.cn">
+  <img class="avatar" src="https://www.52zhoujia.cn/images/avatar.png?v=1636452769531" alt="">
+  </a>
+  <h1 class="site-title">
+    Gridea
+  </h1>
+  <p class="site-description">
+    温故而知新
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="/archives" class="menu">
+          归档
+        </a>
+      
+    
+      
+        <a href="/tags" class="menu">
+          标签
+        </a>
+      
+    
+      
+        <a href="/post/about" class="menu">
+          关于
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              Docker之Dockerfile学习笔记
+            </h2>
+            <div class="post-info">
+              <span>
+                2021-11-09
+              </span>
+              <span>
+                2 min read
+              </span>
+              
+            </div>
+            
+            <div class="post-content-wrapper">
+              <div class="post-content">
+                <p>Dockerfile是由一组docker命令组成的文件，docker根据Dockerfile文件构建镜像，然后再运行镜像生成相应的容器，按照不同的生命周期可以将命令划分为构建命令和运行命令。</p>
+<h3 id="构建命令">构建命令</h3>
+<h4 id="from">FROM</h4>
+<p>指定镜像作为新镜像的基础命令<br>
+<code>FROM ubuntu:14.04</code></p>
+<h4 id="maintainer">MAINTAINER</h4>
+<p>该镜像的作者和邮箱<br>
+<code>MAINTAINER olange &quot;xxxxxxx@qq.com&quot;</code></p>
+<h4 id="run">RUN</h4>
+<p>在镜像内部执行脚本或者命令，两种使用方式,第一种可以使用<code>\</code>换行<br>
+<code>RUN echo 'hello docker!' \ &gt; /usr/local/file.txt·</code><br>
+第二种使用参数列表<br>
+<code>RUN [&quot;apt-get&quot;,&quot;install&quot;,&quot;-y&quot;,&quot;nginx&quot;]</code></p>
+<h4 id="copy">COPY</h4>
+<p><code>copy src dest</code><br>
+如果目标路径不存在会自动创建</p>
+<h4 id="add">ADD</h4>
+<p><code>add src dest</code><br>
+跟COPY命令一样，但是如果源文件是压缩文件类型会进行提取和解压</p>
+<h4 id="expose">EXPOSE</h4>
+<p><code>expose 8080</code><br>
+暴露指定端口，可设置多个</p>
+<h4 id="workdir">WORKDIR</h4>
+<p>指定在镜像中的工作目录<br>
+<code>WORKDIR /usr/local</code></p>
+<h4 id="onbuild">ONBUILD</h4>
+<p>被其他镜像FROM时指定要执行的命令<br>
+<code>ONBUILD ADD . /var/www</code></p>
+<h4 id="user">USER</h4>
+<p>指定镜像的以什么用户去执行,默认是 root<br>
+<code>user root</code></p>
+<h4 id="volume">VOLUME</h4>
+<p>将主机目录或者文件与容器进行映射<br>
+<code>VOLUME /data/db /data/configdb</code></p>
+<h3 id="运行命令">运行命令</h3>
+<h4 id="cmd">CMD</h4>
+<p>容器启动时执行的命令<br>
+<code>CMD /bin/bash</code><br>
+或者<br>
+<code>CMD [&quot;/bin/bash&quot;]</code></p>
+<h3 id="entrypoint">ENTRYPOINT</h3>
+<p>用法与CMD类似，但是不会被覆盖，所谓的覆盖是指通过docker命令启动容器时指定的run命令，比如:<br>
+<code>docker run -ti image /bin/bash</code></p>
+
+              </div>
+              <div class="toc-container">
+                <ul class="markdownIt-TOC">
+<li>
+<ul>
+<li>
+<ul>
+<li><a href="#%E6%9E%84%E5%BB%BA%E5%91%BD%E4%BB%A4">构建命令</a>
+<ul>
+<li><a href="#from">FROM</a></li>
+<li><a href="#maintainer">MAINTAINER</a></li>
+<li><a href="#run">RUN</a></li>
+<li><a href="#copy">COPY</a></li>
+<li><a href="#add">ADD</a></li>
+<li><a href="#expose">EXPOSE</a></li>
+<li><a href="#workdir">WORKDIR</a></li>
+<li><a href="#onbuild">ONBUILD</a></li>
+<li><a href="#user">USER</a></li>
+<li><a href="#volume">VOLUME</a></li>
+</ul>
+</li>
+<li><a href="#%E8%BF%90%E8%A1%8C%E5%91%BD%E4%BB%A4">运行命令</a>
+<ul>
+<li><a href="#cmd">CMD</a></li>
+</ul>
+</li>
+<li><a href="#entrypoint">ENTRYPOINT</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://www.52zhoujia.cn/post/yong-docker-qi-dong-mongdb/">
+              <h3 class="post-title">
+                用docker启动mongdb
+              </h3>
+            </a>
+          </div>
+        
+
+        
+
+        <div class="site-footer">
+  Powered by <a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a>
+  <a class="rss" href="https://www.52zhoujia.cn/atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>

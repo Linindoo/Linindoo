@@ -1,0 +1,221 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>java基础知识 | Gridea</title>
+<link rel="shortcut icon" href="https://www.52zhoujia.cn/favicon.ico?v=1636452769531">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://www.52zhoujia.cn/styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="java基础知识 | Gridea - Atom Feed" href="https://www.52zhoujia.cn/atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+
+    <meta name="description" content="1.HashMap的源码，实现原理，JDK8中对HashMap做了怎样的优化。
+HashMap底层是通过数组加链表的方式实现的，当存在hash冲突时，将相同的hash值得数据存放在链表中，jdk8中当链表长度超过8时，会将链表转换成红黑树。..." />
+    <meta name="keywords" content="" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://www.52zhoujia.cn">
+  <img class="avatar" src="https://www.52zhoujia.cn/images/avatar.png?v=1636452769531" alt="">
+  </a>
+  <h1 class="site-title">
+    Gridea
+  </h1>
+  <p class="site-description">
+    温故而知新
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="/archives" class="menu">
+          归档
+        </a>
+      
+    
+      
+        <a href="/tags" class="menu">
+          标签
+        </a>
+      
+    
+      
+        <a href="/post/about" class="menu">
+          关于
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              java基础知识
+            </h2>
+            <div class="post-info">
+              <span>
+                2021-11-09
+              </span>
+              <span>
+                4 min read
+              </span>
+              
+            </div>
+            
+            <div class="post-content-wrapper">
+              <div class="post-content">
+                <h3 id="1hashmap的源码实现原理jdk8中对hashmap做了怎样的优化">1.HashMap的源码，实现原理，JDK8中对HashMap做了怎样的优化。</h3>
+<p>HashMap底层是通过数组加链表的方式实现的，当存在hash冲突时，将相同的hash值得数据存放在链表中，jdk8中当链表长度超过8时，会将链表转换成红黑树。</p>
+<h3 id="2haspmap扩容是怎样扩容的为什么都是2的n次幂的大小">2.HaspMap扩容是怎样扩容的，为什么都是2的N次幂的大小。</h3>
+<p>新建一个数组，复制原数据到新数组，将原有的链表引用也一并复制过来<br>
+为了让数据分布均匀，减少hash冲突，hash值得分布范围比较大，但是实际上不会分配这么大的一个数组来存放，需要将hash通过取模运算来获得数组中实际的索引值，而为了优化性能，采用的位运算，索引=(n - 1) &amp; hash，而n是数组长度，所以n必须是n的幂次方</p>
+<h3 id="3hashmaphashtableconcurrenthashmap的区别">3.HashMap，HashTable，ConcurrentHashMap的区别。</h3>
+<p>HashMap非线程安全<br>
+HashTable线程安全，全表都加了同步锁<br>
+ConcurrentHashMap是线程安全的，JDK1.7以前是采用的分段锁，18以后是使用synchronized只锁定当前链表或红黑二叉树的首节点</p>
+<h3 id="4极高并发下hashtable和concurrenthashmap哪个性能更好为什么如何实现的">4.极高并发下HashTable和ConcurrentHashMap哪个性能更好，为什么，如何实现的。</h3>
+<h3 id="hashmap在高并发下如果没有处理线程安全会有怎样的安全隐患具体表现是什么">HashMap在高并发下如果没有处理线程安全会有怎样的安全隐患，具体表现是什么。</h3>
+<p>如果发生扩容，复制链表时如果发生并发可能导致陷入死循环</p>
+<h3 id="5接口和抽象类的区别">5.接口和抽象类的区别</h3>
+<p>一个类可以实现多个接口，但是只能继承一个抽象类<br>
+接口中的方法都是public的方法（java8允许有实现方法，使用default修饰），而抽线类中可以有抽象方法，也可以有实现方法</p>
+<h3 id="6动态代理的两种方式以及区别">6.动态代理的两种方式，以及区别。</h3>
+<p>JDK动态代理：利用java反射来实现，而且必须提供接口<br>
+CGlib动态代理：利用动态生成的字节码来实现代理，没有接口的限制，</p>
+<h3 id="7java序列化的方式">7.Java序列化的方式。</h3>
+<p>实现Serializable接口隐式序列化：自动序列化所有非static和transient修饰的成员变量<br>
+实现Externalizable接口显示序列化：手动编写序列化规则<br>
+json序列化：用jackson或者fastJson将java对象序列化成json字符串和将json字符串反序列化成java对象<br>
+ProtoBuff序列化：以二进制的方式存储数据</p>
+<h3 id="8传值和传引用的区别java是怎么样的有没有传值引用">8.传值和传引用的区别，Java是怎么样的，有没有传值引用。</h3>
+<p>1.传值：传递的是值的副本，方法中对副本的修改，不会影响到调用方<br>
+2.传引用：传递的是引用的副本，但是副本与原引用所指向的是同一个内存区域，在方法内部通过引用副本对对象进行操作时，会影响到调用方，如果对引用副本进行修改时不会影响到调用方（比如将副本引用设为null或者引用其他地址）<br>
+3.java只有值传递，没有引用传递</p>
+<h3 id="9一个arraylist在循环过程中删除会不会出问题为什么">9.一个ArrayList在循环过程中删除，会不会出问题，为什么。</h3>
+<p>如果通过索引循环，使用arrayList自带的删除方法，有可能存在相邻元素没有删除干净的问题以及数组下标越界问题<br>
+如果通过迭代器循环，还是使用ArrayList自带删除方法，会报同步删除异常问题，原因是ArrayList与迭代器里面有数据没有同步</p>
+<h3 id="9transactional注解在什么情况下会失效为什么">9.@transactional注解在什么情况下会失效，为什么</h3>
+<p>1.方法不是public，必须public方法才会生效<br>
+2.抛出检查性异常或者异常被捕获了。默认情况下，Spring会对运行时异常进行事务回滚<br>
+3.事务类型设置为只读<br>
+4.事务是否开启</p>
+
+              </div>
+              <div class="toc-container">
+                <ul class="markdownIt-TOC">
+<li>
+<ul>
+<li>
+<ul>
+<li><a href="#1hashmap%E7%9A%84%E6%BA%90%E7%A0%81%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86jdk8%E4%B8%AD%E5%AF%B9hashmap%E5%81%9A%E4%BA%86%E6%80%8E%E6%A0%B7%E7%9A%84%E4%BC%98%E5%8C%96">1.HashMap的源码，实现原理，JDK8中对HashMap做了怎样的优化。</a></li>
+<li><a href="#2haspmap%E6%89%A9%E5%AE%B9%E6%98%AF%E6%80%8E%E6%A0%B7%E6%89%A9%E5%AE%B9%E7%9A%84%E4%B8%BA%E4%BB%80%E4%B9%88%E9%83%BD%E6%98%AF2%E7%9A%84n%E6%AC%A1%E5%B9%82%E7%9A%84%E5%A4%A7%E5%B0%8F">2.HaspMap扩容是怎样扩容的，为什么都是2的N次幂的大小。</a></li>
+<li><a href="#3hashmaphashtableconcurrenthashmap%E7%9A%84%E5%8C%BA%E5%88%AB">3.HashMap，HashTable，ConcurrentHashMap的区别。</a></li>
+<li><a href="#4%E6%9E%81%E9%AB%98%E5%B9%B6%E5%8F%91%E4%B8%8Bhashtable%E5%92%8Cconcurrenthashmap%E5%93%AA%E4%B8%AA%E6%80%A7%E8%83%BD%E6%9B%B4%E5%A5%BD%E4%B8%BA%E4%BB%80%E4%B9%88%E5%A6%82%E4%BD%95%E5%AE%9E%E7%8E%B0%E7%9A%84">4.极高并发下HashTable和ConcurrentHashMap哪个性能更好，为什么，如何实现的。</a></li>
+<li><a href="#hashmap%E5%9C%A8%E9%AB%98%E5%B9%B6%E5%8F%91%E4%B8%8B%E5%A6%82%E6%9E%9C%E6%B2%A1%E6%9C%89%E5%A4%84%E7%90%86%E7%BA%BF%E7%A8%8B%E5%AE%89%E5%85%A8%E4%BC%9A%E6%9C%89%E6%80%8E%E6%A0%B7%E7%9A%84%E5%AE%89%E5%85%A8%E9%9A%90%E6%82%A3%E5%85%B7%E4%BD%93%E8%A1%A8%E7%8E%B0%E6%98%AF%E4%BB%80%E4%B9%88">HashMap在高并发下如果没有处理线程安全会有怎样的安全隐患，具体表现是什么。</a></li>
+<li><a href="#5%E6%8E%A5%E5%8F%A3%E5%92%8C%E6%8A%BD%E8%B1%A1%E7%B1%BB%E7%9A%84%E5%8C%BA%E5%88%AB">5.接口和抽象类的区别</a></li>
+<li><a href="#6%E5%8A%A8%E6%80%81%E4%BB%A3%E7%90%86%E7%9A%84%E4%B8%A4%E7%A7%8D%E6%96%B9%E5%BC%8F%E4%BB%A5%E5%8F%8A%E5%8C%BA%E5%88%AB">6.动态代理的两种方式，以及区别。</a></li>
+<li><a href="#7java%E5%BA%8F%E5%88%97%E5%8C%96%E7%9A%84%E6%96%B9%E5%BC%8F">7.Java序列化的方式。</a></li>
+<li><a href="#8%E4%BC%A0%E5%80%BC%E5%92%8C%E4%BC%A0%E5%BC%95%E7%94%A8%E7%9A%84%E5%8C%BA%E5%88%ABjava%E6%98%AF%E6%80%8E%E4%B9%88%E6%A0%B7%E7%9A%84%E6%9C%89%E6%B2%A1%E6%9C%89%E4%BC%A0%E5%80%BC%E5%BC%95%E7%94%A8">8.传值和传引用的区别，Java是怎么样的，有没有传值引用。</a></li>
+<li><a href="#9%E4%B8%80%E4%B8%AAarraylist%E5%9C%A8%E5%BE%AA%E7%8E%AF%E8%BF%87%E7%A8%8B%E4%B8%AD%E5%88%A0%E9%99%A4%E4%BC%9A%E4%B8%8D%E4%BC%9A%E5%87%BA%E9%97%AE%E9%A2%98%E4%B8%BA%E4%BB%80%E4%B9%88">9.一个ArrayList在循环过程中删除，会不会出问题，为什么。</a></li>
+<li><a href="#9transactional%E6%B3%A8%E8%A7%A3%E5%9C%A8%E4%BB%80%E4%B9%88%E6%83%85%E5%86%B5%E4%B8%8B%E4%BC%9A%E5%A4%B1%E6%95%88%E4%B8%BA%E4%BB%80%E4%B9%88">9.@transactional注解在什么情况下会失效，为什么</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://www.52zhoujia.cn/post/linux-shang-redis-de-an-zhuang/">
+              <h3 class="post-title">
+                linux上 redis的安装
+              </h3>
+            </a>
+          </div>
+        
+
+        
+
+        <div class="site-footer">
+  Powered by <a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a>
+  <a class="rss" href="https://www.52zhoujia.cn/atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>

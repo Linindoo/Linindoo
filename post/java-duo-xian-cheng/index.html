@@ -1,0 +1,239 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>java多线程 | Gridea</title>
+<link rel="shortcut icon" href="https://www.52zhoujia.cn/favicon.ico?v=1636452769531">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://www.52zhoujia.cn/styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="java多线程 | Gridea - Atom Feed" href="https://www.52zhoujia.cn/atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+
+    <meta name="description" content="1.Java实现多线程有哪几种方式。
+
+继承Thread，直接实例化
+实现Runnable接口，通过Thread创建线程
+实现Callable接口，通过FutureTask创建线程
+
+###2.Callable和Future的了解。
+Cal..." />
+    <meta name="keywords" content="" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://www.52zhoujia.cn">
+  <img class="avatar" src="https://www.52zhoujia.cn/images/avatar.png?v=1636452769531" alt="">
+  </a>
+  <h1 class="site-title">
+    Gridea
+  </h1>
+  <p class="site-description">
+    温故而知新
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="/archives" class="menu">
+          归档
+        </a>
+      
+    
+      
+        <a href="/tags" class="menu">
+          标签
+        </a>
+      
+    
+      
+        <a href="/post/about" class="menu">
+          关于
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              java多线程
+            </h2>
+            <div class="post-info">
+              <span>
+                2021-11-09
+              </span>
+              <span>
+                4 min read
+              </span>
+              
+            </div>
+            
+            <div class="post-content-wrapper">
+              <div class="post-content">
+                <h3 id="1java实现多线程有哪几种方式">1.Java实现多线程有哪几种方式。</h3>
+<ol>
+<li>继承Thread，直接实例化</li>
+<li>实现Runnable接口，通过Thread创建线程</li>
+<li>实现Callable接口，通过FutureTask创建线程</li>
+</ol>
+<p>###2.Callable和Future的了解。<br>
+Callable是一个多线程的接口，有它创建的多线成可以返回线程的执行结果，而执行结果可以被Future拿到。<br>
+Future的作用：<br>
+1.中断线程的执行<br>
+2.判断是否执行完<br>
+3.获取执行结果（会阻塞）</p>
+<h3 id="3线程池的参数有哪些在线程池创建一个线程的过程">3.线程池的参数有哪些，在线程池创建一个线程的过程。</h3>
+<p>1.核心线程数量<br>
+2.空闲线程存活时间<br>
+3.最大线程数量<br>
+4.阻塞队列<br>
+5.拒绝策略<br>
+线程池初始化时会创建核心线程数量大小的线程，当提交任务数量超过核心线程数量时会再创建新的线程到线程池中来，但是不会超过最大线程数量，但任务数量超过最大线程数量时将任务提交到阻塞队列，当阻塞队列也满了的时候，会选择对应的拒绝策略拒绝该任务的提交。</p>
+<h3 id="4volitile关键字的作用原理">4.volitile关键字的作用，原理</h3>
+<p>作用：<br>
+1.保证内存可见性<br>
+2.禁止指令重排序。 （单核cpu在多线程环境下也会存在cpu在线程之间切换执行，共享变量未能及时更新）</p>
+<p>每个线程在自己工作的时候都会有一个工作内存，当某个内存工作时，会将所需要的变量copy一份放到自己的工作内存中，当有一个线程修改了某个变量的值，还没来得及写入主存，其他线程并不知道这个变量已经改变了，还是使用着各自工作区的变量copy值。<br>
+当使用valotile修饰之后；<br>
+1.强制将修改后变量的值写入到主存中<br>
+2.使该变量在不同工作区的缓存无效<br>
+3.强制从主存中获取值，从主存中获取值时会有总线锁，只有在变量值写入完成后才能读取到，否则一直等待</p>
+<h3 id="5synchronized关键字的用法优缺点">5.synchronized关键字的用法，优缺点。</h3>
+<p>synchronized是一个同步互斥锁，可以修饰方法，代码块，静态方法，类（锁定类，不是修饰），不能被继承，不能修饰接口，不能修饰构造函数。<br>
+修饰一个代码块：进入同步代码块时获取锁，该锁可以是当前对象，也可以是其他对象<br>
+修饰一个方法：锁住当前对象，当线程要执行同步方法时，必须先获得该对象的锁。当一个线程获得了该对象的锁，执行同步方法时，其他线程如果想要执行其他的同步方法，也需要获取该对线的锁，否则等待阻塞。<br>
+修饰一个静态方法：锁定的是这个类的所有对象<br>
+修饰一个类：锁定的是这个类所有的对象<br>
+缺点：不能跨越多个对象，在等待锁的同时不能放弃，直到成功，没有超时限制，不能中断阻塞</p>
+<h3 id="6abc三个线程如何保证顺序执行">6.ABC三个线程如何保证顺序执行。</h3>
+<p>1.使用线程池SingleThreadPool<br>
+2.使用同步<br>
+3.使用join，在线程内部调用上一个线程的join方法（比如在线程B中调用了线程A的Join()方法，直到线程A执行完毕后，才会继续执行线程B。）<br>
+4：使用Callable获取执行结果，当上一个线程执行完毕再执行下一个线程<br>
+5.使用blockingQueue</p>
+<h3 id="7sleep和wait的区别">7.sleep和wait的区别。</h3>
+<p>wait方法和sleep方法的区别：wait是对象的方法，在失去cpu时间的同时，会释放同步锁。而sleep是线程静态方法，不会占用cpu，但是不会释放锁资源</p>
+<h3 id="8notify和notifyall的区别">8.notify和notifyall的区别。</h3>
+<p>notify只会唤醒所有wait线程的随机一个，而notifyall会唤醒所有wait的线程</p>
+<h3 id="9threadlocal的了解实现原理">9.ThreadLocal的了解，实现原理</h3>
+<p>Threadlocal提供了一个线程的局部变量，它所存储的值只有当前线程能够访问得到，其他线程访问不到。</p>
+<h3 id="10线程的状态都有哪些">10.线程的状态都有哪些</h3>
+<p>新建，就绪，运行，阻塞，死亡</p>
+
+              </div>
+              <div class="toc-container">
+                <ul class="markdownIt-TOC">
+<li>
+<ul>
+<li>
+<ul>
+<li><a href="#1java%E5%AE%9E%E7%8E%B0%E5%A4%9A%E7%BA%BF%E7%A8%8B%E6%9C%89%E5%93%AA%E5%87%A0%E7%A7%8D%E6%96%B9%E5%BC%8F">1.Java实现多线程有哪几种方式。</a></li>
+<li><a href="#3%E7%BA%BF%E7%A8%8B%E6%B1%A0%E7%9A%84%E5%8F%82%E6%95%B0%E6%9C%89%E5%93%AA%E4%BA%9B%E5%9C%A8%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%88%9B%E5%BB%BA%E4%B8%80%E4%B8%AA%E7%BA%BF%E7%A8%8B%E7%9A%84%E8%BF%87%E7%A8%8B">3.线程池的参数有哪些，在线程池创建一个线程的过程。</a></li>
+<li><a href="#4volitile%E5%85%B3%E9%94%AE%E5%AD%97%E7%9A%84%E4%BD%9C%E7%94%A8%E5%8E%9F%E7%90%86">4.volitile关键字的作用，原理</a></li>
+<li><a href="#5synchronized%E5%85%B3%E9%94%AE%E5%AD%97%E7%9A%84%E7%94%A8%E6%B3%95%E4%BC%98%E7%BC%BA%E7%82%B9">5.synchronized关键字的用法，优缺点。</a></li>
+<li><a href="#6abc%E4%B8%89%E4%B8%AA%E7%BA%BF%E7%A8%8B%E5%A6%82%E4%BD%95%E4%BF%9D%E8%AF%81%E9%A1%BA%E5%BA%8F%E6%89%A7%E8%A1%8C">6.ABC三个线程如何保证顺序执行。</a></li>
+<li><a href="#7sleep%E5%92%8Cwait%E7%9A%84%E5%8C%BA%E5%88%AB">7.sleep和wait的区别。</a></li>
+<li><a href="#8notify%E5%92%8Cnotifyall%E7%9A%84%E5%8C%BA%E5%88%AB">8.notify和notifyall的区别。</a></li>
+<li><a href="#9threadlocal%E7%9A%84%E4%BA%86%E8%A7%A3%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86">9.ThreadLocal的了解，实现原理</a></li>
+<li><a href="#10%E7%BA%BF%E7%A8%8B%E7%9A%84%E7%8A%B6%E6%80%81%E9%83%BD%E6%9C%89%E5%93%AA%E4%BA%9B">10.线程的状态都有哪些</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://www.52zhoujia.cn/post/java-ji-chu-zhi-shi/">
+              <h3 class="post-title">
+                java基础知识
+              </h3>
+            </a>
+          </div>
+        
+
+        
+
+        <div class="site-footer">
+  Powered by <a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a>
+  <a class="rss" href="https://www.52zhoujia.cn/atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>

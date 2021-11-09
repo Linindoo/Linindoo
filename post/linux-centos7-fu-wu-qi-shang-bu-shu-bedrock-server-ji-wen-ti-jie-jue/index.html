@@ -1,0 +1,265 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>linux centos7服务器上部署bedrock-server及问题解决 | Gridea</title>
+<link rel="shortcut icon" href="https://www.52zhoujia.cn/favicon.ico?v=1636452769531">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://www.52zhoujia.cn/styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="linux centos7服务器上部署bedrock-server及问题解决 | Gridea - Atom Feed" href="https://www.52zhoujia.cn/atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+
+    <meta name="description" content="###一. 源码下载：
+目前我的官网已经提供bedrock-server的下载地址https://minecraft.net/zh-hans/download/server/bedrock/
+1.直接下载到本地电脑，解压后将文件夹上传至li..." />
+    <meta name="keywords" content="" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://www.52zhoujia.cn">
+  <img class="avatar" src="https://www.52zhoujia.cn/images/avatar.png?v=1636452769531" alt="">
+  </a>
+  <h1 class="site-title">
+    Gridea
+  </h1>
+  <p class="site-description">
+    温故而知新
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="/archives" class="menu">
+          归档
+        </a>
+      
+    
+      
+        <a href="/tags" class="menu">
+          标签
+        </a>
+      
+    
+      
+        <a href="/post/about" class="menu">
+          关于
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              linux centos7服务器上部署bedrock-server及问题解决
+            </h2>
+            <div class="post-info">
+              <span>
+                2021-11-09
+              </span>
+              <span>
+                5 min read
+              </span>
+              
+            </div>
+            
+            <div class="post-content-wrapper">
+              <div class="post-content">
+                <p>###一. 源码下载：<br>
+目前我的官网已经提供<a href="https://minecraft.net/zh-hans/download/server/bedrock/">bedrock-server</a>的下载地址<a href="https://minecraft.net/zh-hans/download/server/bedrock/">https://minecraft.net/zh-hans/download/server/bedrock/</a><br>
+1.直接下载到本地电脑，解压后将文件夹上传至linux服务器<br>
+2.在linux服务器上通过wget命令直接下载，免去了文件传输的麻烦<br>
+<code>wget -c https://minecraft.azureedge.net/bin-linux/bedrock-server-1.7.0.13.zip</code><br>
+安装unzip<br>
+<code>yum install -y unzip</code><br>
+解压<br>
+<code>unzip -o -d /root/bedrock bedrock-server-1.7.0.13.zip</code><br>
+###二.运行<br>
+<code>cd bedrock</code><br>
+<code>LD_LIBRARY_PATH=. ./bedrock_server</code><br>
+如果你使用的是centos系统，这时候运行百分百会报错，因为这是已经编译好的程序压缩包，你使用的环境与他们所编译的环境是不同的，所以有一些动态链接库需要进行修改。<br>
+###三.解决汇总<br>
+1.</p>
+<blockquote>
+<p>./bedrock_server: error while loading shared libraries: libssl.so.1.1: cannot open shared object file: No such file or directory</p>
+</blockquote>
+<p>这个是个比较棘手的问题，因为它涉及到了openssl,如果一个操作失误就会导致服务器的网络连接崩溃，你再也无法通过远程连接到服务器，唯一的解决办法就是重装系统。<br>
+首先，下载：https://www.openssl.org/source/old/1.0.1/openssl-1.0.1e.tar.gz<br>
+执行./config shared zlib-dynamic 来生成Makefile文件。<br>
+<code>cd openssl-1.0.1e</code><br>
+<code>./config shared zlib-dynamic</code><br>
+通过make来生成生成libssl.so.1.0.0和libcrypto.so.1.0.0,这一步不要install，我们只需要编译好的文件，需要安装。<br>
+将这2个文件拷贝到 /usr/lib64/，然后执行以下2条生成软连接解决<br>
+<code>cd /usr/lib64</code></p>
+<p><code>ln -s libssl.so.1.0.0 libssl.so.10</code><br>
+<code>ln -s libcrypto.so.1.0.0 libcrypto.so.10</code><br>
+到这一步，第一个问题已经基本解决了<br>
+2.</p>
+<blockquote>
+<p>gcc command not found...</p>
+</blockquote>
+<p>这是因为没有安装gcc，<br>
+<code>yum -y install gcc</code><br>
+<code>yum -y install gcc-c++</code><br>
+3.</p>
+<blockquote>
+<p>c_zlib.c:25:19: fatal error: zlib.h: No such file or directory</p>
+</blockquote>
+<p>在<a href="http://www.zlib.net/">http://www.zlib.net/</a>选择一个对应的版本下载，我下载的是 最新的1.2.11<br>
+下载完成后解压，cd到解压目录<br>
+构建静态库<br>
+<code>./configure</code><br>
+<code>make test</code><br>
+<code>make install</code><br>
+构建共享库<br>
+<code>make clean</code><br>
+<code>./configure --shared</code><br>
+<code>make test</code><br>
+<code>make install</code><br>
+<code>cp zutil.h /usr/local/include</code><br>
+<code>cp zutil.c /usr/local/include</code><br>
+ok<br>
+3.</p>
+<blockquote>
+<p>'GLIBCXX_3.4.21' not found</p>
+</blockquote>
+<p>此类问题是因为gcc的版本问题，但是centos通过yum安装的最新版本最高也只能到GLIBCXX_3.4.19,如果你的系统是 ubuntu那就比较好解决，但是如果是centos就比较麻烦，这次以centos7为例简述我的解决过程。<br>
+首先检查动态库<br>
+<code>strings /usr/lib64/libstdc++.so.6 | grep GLIBC</code><br>
+centos明显没有相应的动态库，在服务器内部看能不能找到相关的文件<br>
+<code>find / -name &quot;libstdc++.so*&quot;</code></p>
+<blockquote>
+<p>/root/project/bedrock-server-1.6.1.0/libstdc++.so.6<br>
+/var/lib/docker/overlay2/319eede46f2c89ce0d92f8c0af1d9acbb36e51bd5289d9c7762a13f0710bb3b2/diff/usr/lib64/libstdc++.so.6.0.19<br>
+/var/lib/docker/overlay2/319eede46f2c89ce0d92f8c0af1d9acbb36e51bd5289d9c7762a13f0710bb3b2/diff/usr/lib64/libstdc++.so.6<br>
+/var/lib/docker/overlay2/319eede46f2c89ce0d92f8c0af1d9acbb36e51bd5289d9c7762a13f0710bb3b2/diff/usr/share/gdb/auto-load/usr/lib64/libstdc++.so.6.0.19-gdb.pyo<br>
+/var/lib/docker/overlay2/319eede46f2c89ce0d92f8c0af1d9acbb36e51bd5289d9c7762a13f0710bb3b2/diff/usr/share/gdb/auto-load/usr/lib64/libstdc++.so.6.0.19-gdb.py<br>
+/var/lib/docker/overlay2/319eede46f2c89ce0d92f8c0af1d9acbb36e51bd5289d9c7762a13f0710bb3b2/diff/usr/share/gdb/auto-load/usr/lib64/libstdc++.so.6.0.19-gdb.pyc<br>
+/var/lib/docker/overlay2/63d9fb9d61ea0d768ad6f4866425bced44af3f5bde91b31e59cbf25a1e59d857/diff/usr/share/gdb/auto-load/usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.25-gdb.py<br>
+/var/lib/docker/overlay2/63d9fb9d61ea0d768ad6f4866425bced44af3f5bde91b31e59cbf25a1e59d857/diff/usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.25<br>
+/var/lib/docker/overlay2/63d9fb9d61ea0d768ad6f4866425bced44af3f5bde91b31e59cbf25a1e59d857/diff/usr/lib/x86_64-linux-gnu/libstdc++.so.6</p>
+</blockquote>
+<p>不过幸运的是刚好我以前在这个服务器里面玩过docker，居然在 docker的目录中找到了相应的libstdc++.so.6.0.25，这肯定是高于运行所需要的GLIBCXX_3.4.21版本了。<br>
+所以我就从docker中copy了一个出来，放到了/usr/lib64文件中。<br>
+然后就添加软链接<br>
+<code>ln -s libstdc++.so.6.0.25 libstdc++.so.6</code><br>
+如果文件已存在就直接强制覆盖<br>
+<code>ln -sf libstdc++.so.6.0.25 libstdc++.so.6</code></p>
+<p>###四.优化<br>
+虽然启动了服务，但是我们需要的是服务能挂起而不需要我们长期停留在窗口。这里推荐使用screen。<br>
+<code>yum install screen</code><br>
+安装完成之后，执行<br>
+<code>screen</code><br>
+然后就可以在新的窗口中执行bedrock-server运行程序，运行完成直接关闭窗口就行</p>
+<h3 id="五-总结">五. 总结</h3>
+<p>用ubuntu系统运行 bedrock-server是最好的解决办法，如果只有centos，那推荐用docker启动ubuntu镜像来运行。强行用centos系统来运行bedrock-server不是不行，只是很麻烦，最后还是缺少一个文件，不得不从ubuntu系统中copy一个过来。</p>
+
+              </div>
+              <div class="toc-container">
+                <ul class="markdownIt-TOC">
+<li>
+<ul>
+<li>
+<ul>
+<li><a href="#%E4%BA%94-%E6%80%BB%E7%BB%93">五. 总结</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://www.52zhoujia.cn/post/linux-yum-yu-rpm/">
+              <h3 class="post-title">
+                linux yum与rpm
+              </h3>
+            </a>
+          </div>
+        
+
+        
+
+        <div class="site-footer">
+  Powered by <a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a>
+  <a class="rss" href="https://www.52zhoujia.cn/atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>

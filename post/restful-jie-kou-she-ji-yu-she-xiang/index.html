@@ -1,0 +1,205 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>restful接口设计与设想 | Gridea</title>
+<link rel="shortcut icon" href="https://www.52zhoujia.cn/favicon.ico?v=1636452769531">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://www.52zhoujia.cn/styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="restful接口设计与设想 | Gridea - Atom Feed" href="https://www.52zhoujia.cn/atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+
+    <meta name="description" content="一、什么是restful
+REST,即Representational  State Transfer,翻译过来大意是：表现层状态转化，是一种接口设计的规范
+二、内容
+1.每一个url代表一种资源
+2.客户端和服务端之间，传递这种资源的某种..." />
+    <meta name="keywords" content="" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://www.52zhoujia.cn">
+  <img class="avatar" src="https://www.52zhoujia.cn/images/avatar.png?v=1636452769531" alt="">
+  </a>
+  <h1 class="site-title">
+    Gridea
+  </h1>
+  <p class="site-description">
+    温故而知新
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="/archives" class="menu">
+          归档
+        </a>
+      
+    
+      
+        <a href="/tags" class="menu">
+          标签
+        </a>
+      
+    
+      
+        <a href="/post/about" class="menu">
+          关于
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              restful接口设计与设想
+            </h2>
+            <div class="post-info">
+              <span>
+                2021-11-09
+              </span>
+              <span>
+                3 min read
+              </span>
+              
+            </div>
+            
+            <div class="post-content-wrapper">
+              <div class="post-content">
+                <h3 id="一-什么是restful">一、什么是restful</h3>
+<p>REST,即Representational  State Transfer,翻译过来大意是：表现层状态转化，是一种接口设计的规范</p>
+<h3 id="二-内容">二、内容</h3>
+<p>1.每一个url代表一种资源<br>
+2.客户端和服务端之间，传递这种资源的某种表现层<br>
+3.客户端通过四个HTTP动词，对服务端资源进行操作，实现表现出状态转化</p>
+<h3 id="三-实际运用">三、实际运用</h3>
+<p>1.资源定位<br>
+资源定位也就是接口命名，但是这个接口名只能用来表示资源的含义，不能使用动词表示任何操作，而且所用名词最好与数据库的表一一对应。往往一张数据库表代表着一个数据的集合，所以接口名词一般都使用复数形式<br>
+比如：/api/cars/<br>
+2.动作（method）<br>
+动作对应于HTTP协议中的method字段<br>
+GET:从服务端获取指定资源，或者资源列表<br>
+POST:往服务端新建一个资源<br>
+PUT:更新一个资源<br>
+DELETE:删除一个资源<br>
+其他动作还有PATCH，HEAD,OPTIONS，实际工作中不是很常用</p>
+<h3 id="四-设想">四、设想</h3>
+<p>RESTful是一种接口规范，如果我们在接口的设计中遵循这种规范，可以给我们的工作带来了很大的便利，而且还简化了文档<br>
+在WEB开发中，增删改查的业务代码占据着日常工作中的大部分时间，但是由于着简单性和重复性，导致在日常的开发中出现bug也是最多的，所以我就在想，在遵循RESTful规范的基础上，能不能设计一套动态路由直接完成增删改查的接口设计和实现，并通过一个ORM系统实现数据的持久化，这样对于开发者来说，只需要进行关注数据库实体的设计，而不需要花费大量的时间来进行业务代码的编写和维护。<br>
+设想这样一个接口:<code>/api/{tableName}/</code><br>
+其中的tableName就对应于一个表名，动态路由中获取到tableName的数据，然后通过反射或者其他的方式获取到ORM操作的实体，根据动作（method）再去执行数据库的操作，最后将操作后的结果回传，一气呵成。<br>
+其他难免会涉及到一些额外操作，比如添加额外的数据，这时候就需要一些扩展入口。在动态路由执行前或者执行后添加扩展点，而开发者只需要在扩展点添加额外的业务代码，就能实现业务的个性化开发，而那些繁琐的增删改查、分页条件查询等都由动态路由完成</p>
+
+              </div>
+              <div class="toc-container">
+                <ul class="markdownIt-TOC">
+<li>
+<ul>
+<li>
+<ul>
+<li><a href="#%E4%B8%80-%E4%BB%80%E4%B9%88%E6%98%AFrestful">一、什么是restful</a></li>
+<li><a href="#%E4%BA%8C-%E5%86%85%E5%AE%B9">二、内容</a></li>
+<li><a href="#%E4%B8%89-%E5%AE%9E%E9%99%85%E8%BF%90%E7%94%A8">三、实际运用</a></li>
+<li><a href="#%E5%9B%9B-%E8%AE%BE%E6%83%B3">四、设想</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://www.52zhoujia.cn/post/linux-cao-zuo-guan-li/">
+              <h3 class="post-title">
+                linux 操作管理
+              </h3>
+            </a>
+          </div>
+        
+
+        
+
+        <div class="site-footer">
+  Powered by <a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a>
+  <a class="rss" href="https://www.52zhoujia.cn/atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>

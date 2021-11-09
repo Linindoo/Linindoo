@@ -1,0 +1,556 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+    <id>https://www.52zhoujia.cn</id>
+    <title>Gridea</title>
+    <updated>2021-11-09T10:13:33.036Z</updated>
+    <generator>https://github.com/jpmonette/feed</generator>
+    <link rel="alternate" href="https://www.52zhoujia.cn"/>
+    <link rel="self" href="https://www.52zhoujia.cn/atom.xml"/>
+    <subtitle>温故而知新</subtitle>
+    <logo>https://www.52zhoujia.cn/images/avatar.png</logo>
+    <icon>https://www.52zhoujia.cn/favicon.ico</icon>
+    <rights>All rights reserved 2021, Gridea</rights>
+    <entry>
+        <title type="html"><![CDATA[Docker之Dockerfile学习笔记]]></title>
+        <id>https://www.52zhoujia.cn/post/docker-zhi-dockerfile-xue-xi-bi-ji/</id>
+        <link href="https://www.52zhoujia.cn/post/docker-zhi-dockerfile-xue-xi-bi-ji/">
+        </link>
+        <updated>2021-11-09T10:02:20.000Z</updated>
+        <content type="html"><![CDATA[<p>Dockerfile是由一组docker命令组成的文件，docker根据Dockerfile文件构建镜像，然后再运行镜像生成相应的容器，按照不同的生命周期可以将命令划分为构建命令和运行命令。</p>
+<h3 id="构建命令">构建命令</h3>
+<h4 id="from">FROM</h4>
+<p>指定镜像作为新镜像的基础命令<br>
+<code>FROM ubuntu:14.04</code></p>
+<h4 id="maintainer">MAINTAINER</h4>
+<p>该镜像的作者和邮箱<br>
+<code>MAINTAINER olange &quot;xxxxxxx@qq.com&quot;</code></p>
+<h4 id="run">RUN</h4>
+<p>在镜像内部执行脚本或者命令，两种使用方式,第一种可以使用<code>\</code>换行<br>
+<code>RUN echo 'hello docker!' \ &gt; /usr/local/file.txt·</code><br>
+第二种使用参数列表<br>
+<code>RUN [&quot;apt-get&quot;,&quot;install&quot;,&quot;-y&quot;,&quot;nginx&quot;]</code></p>
+<h4 id="copy">COPY</h4>
+<p><code>copy src dest</code><br>
+如果目标路径不存在会自动创建</p>
+<h4 id="add">ADD</h4>
+<p><code>add src dest</code><br>
+跟COPY命令一样，但是如果源文件是压缩文件类型会进行提取和解压</p>
+<h4 id="expose">EXPOSE</h4>
+<p><code>expose 8080</code><br>
+暴露指定端口，可设置多个</p>
+<h4 id="workdir">WORKDIR</h4>
+<p>指定在镜像中的工作目录<br>
+<code>WORKDIR /usr/local</code></p>
+<h4 id="onbuild">ONBUILD</h4>
+<p>被其他镜像FROM时指定要执行的命令<br>
+<code>ONBUILD ADD . /var/www</code></p>
+<h4 id="user">USER</h4>
+<p>指定镜像的以什么用户去执行,默认是 root<br>
+<code>user root</code></p>
+<h4 id="volume">VOLUME</h4>
+<p>将主机目录或者文件与容器进行映射<br>
+<code>VOLUME /data/db /data/configdb</code></p>
+<h3 id="运行命令">运行命令</h3>
+<h4 id="cmd">CMD</h4>
+<p>容器启动时执行的命令<br>
+<code>CMD /bin/bash</code><br>
+或者<br>
+<code>CMD [&quot;/bin/bash&quot;]</code></p>
+<h3 id="entrypoint">ENTRYPOINT</h3>
+<p>用法与CMD类似，但是不会被覆盖，所谓的覆盖是指通过docker命令启动容器时指定的run命令，比如:<br>
+<code>docker run -ti image /bin/bash</code></p>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[用docker启动mongdb]]></title>
+        <id>https://www.52zhoujia.cn/post/yong-docker-qi-dong-mongdb/</id>
+        <link href="https://www.52zhoujia.cn/post/yong-docker-qi-dong-mongdb/">
+        </link>
+        <updated>2021-11-09T10:01:48.000Z</updated>
+        <content type="html"><![CDATA[<h3 id="拉取镜像">拉取镜像</h3>
+<p><code>docker pull mongo</code></p>
+<h3 id="配置目录">配置目录</h3>
+<p>创建本地目录，用来与docker虚拟目录进行映射，保存配置文件和数据<br>
+<code>mkdir -p /home/mongo/{data,conf}</code></p>
+<h3 id="启动mongodb">启动mongodb</h3>
+<p><code>docker run -idt --name app_data--privileged=true -p 27017:27017 -v /home/mongo/data:/data/db -v /home/mongo/conf:/data/configdb docker.io/mongo:latest --auth --restart=always</code></p>
+<h3 id="配置用户名和密码">配置用户名和密码</h3>
+<ul>
+<li>
+<p>连接mongodb</p>
+<p><code>docker exec -it 0ef08be56744 mongo admin</code></p>
+</li>
+<li>
+<p>选择admin数据库<br>
+<code>use admin</code></p>
+</li>
+<li>
+<p>创建用户<br>
+<code>db.createUser({user: 'admin', pwd: '***密码***', roles: [{role: &quot;userAdminAnyDatabase&quot;, db: &quot;admin&quot; }]})</code></p>
+</li>
+<li>
+<p>用户登录<br>
+<code>db.auth('admin', '***密码***')</code></p>
+</li>
+</ul>
+<h3 id="创建数据库及管理用户">创建数据库及管理用户</h3>
+<ul>
+<li>如果存在就切换，如果不存在就创建该数据库<br>
+<code>use app</code></li>
+<li>创建数据库管理员用户<br>
+<code>db.createUser({user: &quot;root&quot;, pwd: &quot;***密码***&quot;, roles: [{ role: &quot;dbOwner&quot;, db: &quot;app&quot; }]})</code></li>
+</ul>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[idea-rule插件]]></title>
+        <id>https://www.52zhoujia.cn/post/idea-rule-cha-jian/</id>
+        <link href="https://www.52zhoujia.cn/post/idea-rule-cha-jian/">
+        </link>
+        <updated>2021-11-09T10:01:23.000Z</updated>
+        <content type="html"><![CDATA[<h1 id="idea-rule">idea-rule</h1>
+<p>基于IDEA平台的常用正则表达式插件</p>
+<h3 id="安装">安装</h3>
+<p>IDEA应用商店中搜索&quot;<strong>any-rule</strong>&quot;.</p>
+<h3 id="使用">使用</h3>
+<p><strong>方式1:</strong></p>
+<p>按<strong>alt + a</strong>打开正则列表</p>
+<p><strong>方式2:</strong></p>
+<p>右键选择<strong>Any Rule</strong> 打开正则列表</p>
+<h2 id="fire关于插件">🔥关于插件</h2>
+<p>数据来源于<a href="https://github.com/any86/any-rule/,'anyrule'">anyrule</a></p>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[springboot集成Swagger的问题及解决]]></title>
+        <id>https://www.52zhoujia.cn/post/springboot-ji-cheng-swagger-de-wen-ti-ji-jie-jue/</id>
+        <link href="https://www.52zhoujia.cn/post/springboot-ji-cheng-swagger-de-wen-ti-ji-jie-jue/">
+        </link>
+        <updated>2021-11-09T10:00:22.000Z</updated>
+        <content type="html"><![CDATA[<h3 id="前言">前言</h3>
+<p>Swagger是一个自动化的文档生成器，通过注解的方式就能快速地生成api接口文档，并且还能提供一个简单的接口测试入口，方便前后端的开发交互</p>
+<h3 id="通过maven引入swagger依赖">通过maven引入Swagger依赖</h3>
+<pre><code>&lt;dependency&gt;
+    &lt;groupId&gt;io.springfox&lt;/groupId&gt;
+    &lt;artifactId&gt;springfox-swagger2&lt;/artifactId&gt;
+    &lt;version&gt;2.7.0&lt;/version&gt;
+&lt;/dependency&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;io.springfox&lt;/groupId&gt;
+    &lt;artifactId&gt;springfox-swagger-ui&lt;/artifactId&gt;
+    &lt;version&gt;2.7.0&lt;/version&gt;
+&lt;/dependency&gt;
+</code></pre>
+<h3 id="配置swagger">配置Swagger</h3>
+<p>创建swagger的配置Bean</p>
+<pre><code>@Configuration
+@EnableSwagger2
+public class Swagger2Configuration {
+    @Bean
+    public Docket productApi() {
+        return new Docket(DocumentationType.SWAGGER_2)
+                .apiInfo(apiInfo())
+                .select()
+                .apis(RequestHandlerSelectors.withMethodAnnotation(ApiOperation.class))
+                .paths(PathSelectors.any())
+                .build();
+    }
+
+    private ApiInfo apiInfo() {
+        return new ApiInfoBuilder().title(&quot;Swagger with springboot&quot;)
+                .description(&quot;zcms的开发文档&quot;)
+                .version(&quot;2.0&quot;)
+                .build();
+    }
+}
+</code></pre>
+<h3 id="启动springboot">启动Springboot</h3>
+<p>对于springboot的启动就不多说了，相信网上已经有许多这方面的教程了。如果一切顺利，那么打开网址<a href="http://localhost:8080/swagger-ui.html">http://localhost:8080/swagger-ui.html</a>就能看到你想要的接口文档了<br>
+然而事情往往没有这么顺利</p>
+<h3 id="问题一">问题一</h3>
+<h4 id="浏览器打开swagger-ui首页出现了一个弹出框弹出框的内容为">浏览器打开Swagger-ui首页出现了一个弹出框，弹出框的内容为：</h4>
+<blockquote>
+<p>Unable to infer base url. This is common when using dynamic servlet registration or when the API is behind an API Gateway. The base url is the root of where all the swagger resources are served. For e.g. if the api is available at http://example.org/api/v2/api-docs then the base url is http://example.org/api/. Please enter the location manually:<br>
+接下来就是一个简单的输入框，输入框的内容是当前页面的地址</p>
+</blockquote>
+<h4 id="分析">分析</h4>
+<p>通过浏览器控制台查看数据发现，在弹出框的确认后，会发送一个异步请求，而这个异步请求的结果返回失败，异步请求的路径就是输入框中的值，那么可以推断所谓的弹出框是为了让用户输入正确的请求地址，如果请求一直失败，它会一直弹框</p>
+<h4 id="解决">解决</h4>
+<p>将输入框中的内容修改为正确的请求根路径，一般为网站根路径</p>
+<h3 id="问题二">问题二</h3>
+<h5 id="如果问题到这一步就解决了那再好不过了然而事情却没有那么简单">如果问题到这一步就解决了，那再好不过了，然而事情却没有那么简单</h5>
+<p>请求路径虽然正确了，但是请求没有返回预期的结果，提示没有权限</p>
+<h4 id="分析-2">分析</h4>
+<p>顺着提示的线索，查看项目发现该项目中使用了spring security进行了用户权限校验</p>
+<h4 id="解决-2">解决</h4>
+<pre><code>@EnableWebSecurity
+@EnableGlobalMethodSecurity(prePostEnabled = true)
+public class SwaggerSecurityConfig extends WebSecurityConfigurerAdapter {
+
+    @Override
+    public void configure(WebSecurity web) throws Exception {
+        //allow Swagger URL to be accessed without authentication
+        web.ignoring().antMatchers(&quot;/v2/api-docs&quot;,//swagger api json
+                &quot;/swagger-resources/configuration/ui&quot;,//用来获取支持的动作
+                &quot;/swagger-resources&quot;,//用来获取api-docs的URI
+                &quot;/swagger-resources/configuration/security&quot;,//安全选项
+                &quot;/swagger-ui.html&quot;);
+    }
+}
+</code></pre>
+<p>将路径添加到security的白名单中，不同的项目视情况而定，目的是要让这几个路径开放权限</p>
+<h3 id="问题三">问题三</h3>
+<blockquote>
+<p>fetching resource list: http://localhost:3000/api/api-docs<br>
+?group=api; Please wait.<br>
+现在已经成功地进入了首页，没有再弹框了，但是页面显示正在进行异步请求一直保持在这里，很久没有变化，查看控制台发现请求已经失败了</p>
+</blockquote>
+<p>因为项目中对前端文档的展示进行了一些个性化的DIY，所以文档路径不是默认的<code>/v2/api-docs</code></p>
+<h4 id="分析-3">分析</h4>
+<p>首先这是swagger请求接口，第一个想到的就是将这个路径添加进白名单里，但是转念一想，鬼才知道还有多少个路径要加白名单呢，难道没有一个一劳永逸的办法吗？</p>
+<h5 id="为了解决这个问题首先要找到这个接口所在的控制器看它的源码经过一番查找终于在springfox-swaggerjar依赖中找到了位置在springfoxdocumentationswagger2web包下面的swagger2controllerclass文件中">为了解决这个问题，首先要找到这个接口所在的控制器看它的源码，经过一番查找，终于在<code>springfox-swagger</code>jar依赖中找到了，位置在<code>springfox.documentation.swagger2.web</code>包下面的<code>Swagger2Controller.class</code>文件中。</h5>
+<h5 id="源码如下">源码如下</h5>
+<pre><code> public static final String DEFAULT_URL = &quot;/v2/api-docs&quot;;
+    private static final String HAL_MEDIA_TYPE = &quot;application/hal+json&quot;;
+    private final String hostNameOverride;
+    private final DocumentationCache documentationCache;
+    private final ServiceModelToSwagger2Mapper mapper;
+    private final JsonSerializer jsonSerializer;
+
+    @Autowired
+    public Swagger2Controller(Environment environment, DocumentationCache documentationCache, ServiceModelToSwagger2Mapper mapper, JsonSerializer jsonSerializer) {
+        this.hostNameOverride = environment.getProperty(&quot;springfox.documentation.swagger.v2.host&quot;, &quot;DEFAULT&quot;);
+        this.documentationCache = documentationCache;
+        this.mapper = mapper;
+        this.jsonSerializer = jsonSerializer;
+    }
+
+    @RequestMapping(
+        value = {&quot;/v2/api-docs&quot;},
+        method = {RequestMethod.GET},
+        produces = {&quot;application/json&quot;, &quot;application/hal+json&quot;}
+    )
+    @PropertySourcedMapping(
+        value = &quot;${springfox.documentation.swagger.v2.path}&quot;,
+        propertyKey = &quot;springfox.documentation.swagger.v2.path&quot;
+    )
+    @ResponseBody
+    public ResponseEntity&lt;Json&gt; getDocumentation(@RequestParam(value = &quot;group&quot;,required = false) String swaggerGroup, HttpServletRequest servletRequest) {
+        String groupName = (String)Optional.fromNullable(swaggerGroup).or(&quot;default&quot;);
+        Documentation documentation = this.documentationCache.documentationByGroup(groupName);
+        if (documentation == null) {
+            return new ResponseEntity(HttpStatus.NOT_FOUND);
+        } else {
+            Swagger swagger = this.mapper.mapDocumentation(documentation);
+            UriComponents uriComponents = HostNameProvider.componentsFrom(servletRequest, swagger.getBasePath());
+            swagger.basePath(Strings.isNullOrEmpty(uriComponents.getPath()) ? &quot;/&quot; : uriComponents.getPath());
+            if (Strings.isNullOrEmpty(swagger.getHost())) {
+                swagger.host(this.hostName(uriComponents));
+            }
+
+            return new ResponseEntity(this.jsonSerializer.toJson(swagger), HttpStatus.OK);
+        }
+    }
+
+    private String hostName(UriComponents uriComponents) {
+        if (&quot;DEFAULT&quot;.equals(this.hostNameOverride)) {
+            String host = uriComponents.getHost();
+            int port = uriComponents.getPort();
+            return port &gt; -1 ? String.format(&quot;%s:%d&quot;, host, port) : host;
+        } else {
+            return this.hostNameOverride;
+        }
+    }
+</code></pre>
+<p>可以看到<code>/v2/api-docs</code>是它默认的文档请求路径，继续往下看可以发现在<code>@RequestMapping</code>注解下面还有一排代码</p>
+<pre><code>@PropertySourcedMapping(
+        value = &quot;${springfox.documentation.swagger.v2.path}&quot;,
+        propertyKey = &quot;springfox.documentation.swagger.v2.path&quot;
+    )
+</code></pre>
+<p>而<code>PropertySourcedMapping</code>的作用就是从配置文件中获取数据，这是不是就意味着我们可以通过配置文件来动态的修改文档路径呢</p>
+<h4 id="解决-3">解决</h4>
+<p>在 spring-boot的配置文件<code>application.properties</code>中添加如下配置</p>
+<pre><code>springfox.documentation.swagger.v2.path=/api/api-docs
+
+</code></pre>
+<p>重启后一切果然如预想中的那样</p>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[restful接口设计与设想]]></title>
+        <id>https://www.52zhoujia.cn/post/restful-jie-kou-she-ji-yu-she-xiang/</id>
+        <link href="https://www.52zhoujia.cn/post/restful-jie-kou-she-ji-yu-she-xiang/">
+        </link>
+        <updated>2021-11-09T09:59:35.000Z</updated>
+        <content type="html"><![CDATA[<h3 id="一-什么是restful">一、什么是restful</h3>
+<p>REST,即Representational  State Transfer,翻译过来大意是：表现层状态转化，是一种接口设计的规范</p>
+<h3 id="二-内容">二、内容</h3>
+<p>1.每一个url代表一种资源<br>
+2.客户端和服务端之间，传递这种资源的某种表现层<br>
+3.客户端通过四个HTTP动词，对服务端资源进行操作，实现表现出状态转化</p>
+<h3 id="三-实际运用">三、实际运用</h3>
+<p>1.资源定位<br>
+资源定位也就是接口命名，但是这个接口名只能用来表示资源的含义，不能使用动词表示任何操作，而且所用名词最好与数据库的表一一对应。往往一张数据库表代表着一个数据的集合，所以接口名词一般都使用复数形式<br>
+比如：/api/cars/<br>
+2.动作（method）<br>
+动作对应于HTTP协议中的method字段<br>
+GET:从服务端获取指定资源，或者资源列表<br>
+POST:往服务端新建一个资源<br>
+PUT:更新一个资源<br>
+DELETE:删除一个资源<br>
+其他动作还有PATCH，HEAD,OPTIONS，实际工作中不是很常用</p>
+<h3 id="四-设想">四、设想</h3>
+<p>RESTful是一种接口规范，如果我们在接口的设计中遵循这种规范，可以给我们的工作带来了很大的便利，而且还简化了文档<br>
+在WEB开发中，增删改查的业务代码占据着日常工作中的大部分时间，但是由于着简单性和重复性，导致在日常的开发中出现bug也是最多的，所以我就在想，在遵循RESTful规范的基础上，能不能设计一套动态路由直接完成增删改查的接口设计和实现，并通过一个ORM系统实现数据的持久化，这样对于开发者来说，只需要进行关注数据库实体的设计，而不需要花费大量的时间来进行业务代码的编写和维护。<br>
+设想这样一个接口:<code>/api/{tableName}/</code><br>
+其中的tableName就对应于一个表名，动态路由中获取到tableName的数据，然后通过反射或者其他的方式获取到ORM操作的实体，根据动作（method）再去执行数据库的操作，最后将操作后的结果回传，一气呵成。<br>
+其他难免会涉及到一些额外操作，比如添加额外的数据，这时候就需要一些扩展入口。在动态路由执行前或者执行后添加扩展点，而开发者只需要在扩展点添加额外的业务代码，就能实现业务的个性化开发，而那些繁琐的增删改查、分页条件查询等都由动态路由完成</p>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[linux 操作管理]]></title>
+        <id>https://www.52zhoujia.cn/post/linux-cao-zuo-guan-li/</id>
+        <link href="https://www.52zhoujia.cn/post/linux-cao-zuo-guan-li/">
+        </link>
+        <updated>2021-11-09T09:59:10.000Z</updated>
+        <content type="html"><![CDATA[<h3 id="一-切换root用户">一、切换root用户</h3>
+<pre><code>su
+</code></pre>
+<p>然后输入密码即可</p>
+<h3 id="二-chmod命令的使用">二、chmod命令的使用</h3>
+<p>chmod是linux中一个很常用的命令，主要是用来改变一个文件或者目录的权限，它有两种用法</p>
+<h5 id="以数字作为参数改变权限">以数字作为参数改变权限</h5>
+<pre><code>chmod 754 xxx.xx 
+</code></pre>
+<p>首先要明确几个概念，权限分为三种<br>
+r:读权限，权重是4<br>
+w:写权限，权重是2<br>
+x:执行权限，权重是1<br>
+如果要配置多个权限，那么就取其权重相加之和，<br>
+比如7=4+2+1,那么就代表了可读可写可执行<br>
+比如5=4+1,那么就代表了可读可执行</p>
+<p>除此之外，还有一个隐藏的用户信息，用户信息按照顺序分为三种<br>
+u:文件的归属者，一般是文件的创建用户<br>
+g:文件的归属者的同组的用户<br>
+o:其他的用户</p>
+<p>比如第一个7的权限就赋给u用户，第二个5就赋给g用户，第三个4就赋给o用户，依次按顺序赋值。如果某位缺少权限，那么当前位的权限就是0</p>
+<h5 id="使用命令符号改变权限">使用命令符号改变权限</h5>
+<pre><code>chmod [option] ［who］ ［+ | - | =］ ［mode］ 文件名
+</code></pre>
+<p>option：参数，可不填</p>
+<h6 id="-c若该档案权限确实已经更改才显示其更改动作">-c:若该档案权限确实已经更改，才显示其更改动作</h6>
+<h6 id="-f若该档案权限无法被更改也不要显示错误讯息">-f:若该档案权限无法被更改也不要显示错误讯息</h6>
+<h6 id="-v显示权限变更的详细资料">-v:显示权限变更的详细资料</h6>
+<h6 id="-r以递归的方式对目前目录下的所有档案与子目录进行相同的权限变更">-R:以递归的方式对目前目录下的所有档案与子目录进行相同的权限变更</h6>
+<p>who:用户信息，比如u,g,o,多了一个a,代表所有用户<br>
++:增加权限<br>
+-:删除权限<br>
+=:替换权限，其他权限都清除<br>
+mode:权限组合，rwx,三种随意组合</p>
+<p>比如</p>
+<pre><code>chmod a+rw xxx.xx
+</code></pre>
+<pre><code>
+chmod -R ug+rwx xxx.xx
+</code></pre>
+<h3 id="三-yum的安装">三、yum的安装</h3>
+<h5 id="1下载yum包">1.下载yum包</h5>
+<pre><code>wget   http://mirrors.163.com/centos/7/os/x86_64/Packages/yum-3.4.3-150.el7.centos.noarch.rpm
+
+</code></pre>
+<h5 id="2安装yum包">2.安装yum包</h5>
+<pre><code>rpm -ivh yum-3.4.3-150.el7.centos.noarch.rpm yum-metadata-parser-1.1.4-10.el7.x86_64.rpm yum-plugin-fastestmirror-1.1.31-40.el7.noarch.rpm yum-updateonboot-1.1.31-40.el7.noarch.rpm yum-utils-1.1.31-40.el7.noarch.rpm --nodeps --force
+</code></pre>
+<h5 id="3更改yum数据源">3.更改yum数据源</h5>
+<p>这里我选择阿里云镜像仓库，这个更稳定</p>
+<p>切换目录</p>
+<pre><code>cd /etc/yum.repos.d
+</code></pre>
+<p>备份文件(可忽略)</p>
+<pre><code>mv CentOS-Base.repo CentOS-Base.repo.bak
+</code></pre>
+<p>下载文件</p>
+<pre><code>wget -O CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-7.repo
+</code></pre>
+<p>清理缓存</p>
+<pre><code>yum clean all
+</code></pre>
+<p>重新生成缓存</p>
+<pre><code>yum makecache
+</code></pre>
+<h3 id="四-防火墙管理">四、防火墙管理</h3>
+<h5 id="1查看已经开放的端口">1.查看已经开放的端口</h5>
+<pre><code>firewall-cmd --list-ports
+</code></pre>
+<h5 id="2开启80端口">2.开启80端口</h5>
+<pre><code>firewall-cmd --zone=public --add-port=80/tcp --permanent
+</code></pre>
+<h5 id="3重启防火墙">3.重启防火墙</h5>
+<pre><code>firewall-cmd --reload
+</code></pre>
+<h5 id="4其他操作">4.其他操作</h5>
+<pre><code>systemctl stop firewalld.service #停止firewall
+systemctl disable firewalld.service #禁止firewall开机启动
+</code></pre>
+<h3 id="五-iptables">五、iptables</h3>
+<p>iptables是linux系统自带的防火墙，可以设置规则，也可以做NAT</p>
+<h5 id="1列出所有的规则">1.列出所有的规则</h5>
+<pre><code>iptables -L
+</code></pre>
+<h5 id="2按顺序列出input项下的所有规则">2.按顺序列出INPUT项下的所有规则</h5>
+<pre><code>iptables -L INPUT --line-numbers
+</code></pre>
+<h5 id="3指定行数删除规则">3.指定行数删除规则</h5>
+<pre><code>iptables -D INPUT 4
+
+</code></pre>
+<h5 id="4重启iptables">4.重启iptables</h5>
+<pre><code>service iptables restart
+</code></pre>
+<h3 id="六-查看端口占用">六、查看端口占用</h3>
+<h5 id="1lsof">1.lsof</h5>
+<pre><code>lsof -i:80
+</code></pre>
+<h5 id="2netstat">2.netstat</h5>
+<pre><code>netstat -anp|grep 80 
+
+</code></pre>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[tomcat使用问题汇总]]></title>
+        <id>https://www.52zhoujia.cn/post/tomcat-shi-yong-wen-ti-hui-zong/</id>
+        <link href="https://www.52zhoujia.cn/post/tomcat-shi-yong-wen-ti-hui-zong/">
+        </link>
+        <updated>2021-11-09T09:58:40.000Z</updated>
+        <content type="html"><![CDATA[<h4 id="1电脑上有多个版本的tomcat但是通过startupbat批处理脚本却只能启动某个固定的tomcat">1.电脑上有多个版本的tomcat，但是通过startup.bat批处理脚本却只能启动某个固定的tomcat</h4>
+<p>电脑环境是win10，出现这种情况很有可能是环境变量的锅，检查系统环境变量发现有一个<code>CATALINA_HOME</code>的变量，其变量值就是那个固定的tomcat目录，所以只要修改这个环境变量保存就可以了</p>
+<h4 id="2tomcat怎么将项目发布到根目录">2.tomcat怎么将项目发布到根目录</h4>
+<p>首先找到tomcat的conf目录下面的service.xml文件，然后进去编辑，在最下面的<Host>标签中添加如下标签</p>
+<pre><code>&lt;Context path=&quot;&quot; docBase=&quot;你的项目绝对路径&quot; debug=&quot;0&quot;  
+reloadable=&quot;false&quot; crossContext=&quot;true&quot;&gt;&lt;/Context&gt;
+</code></pre>
+<p>最后保存重启</p>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[分布式]]></title>
+        <id>https://www.52zhoujia.cn/post/fen-bu-shi/</id>
+        <link href="https://www.52zhoujia.cn/post/fen-bu-shi/">
+        </link>
+        <updated>2021-11-09T09:58:14.000Z</updated>
+        <content type="html"><![CDATA[<h3 id="1分布式事务">1.分布式事务</h3>
+<p>分布式事务用来保证不同分布式节点中数据的一致性<br>
+两阶段提交：引入一个协调者组件来协调所有分布式节点的事务操作，而所有节点上的事务作为参与者参与进来。参与者将自身事务操作的结果通知协调者，由协调者来判断这些事务应该提交还是回滚。<br>
+两阶段提交分为准备阶段和提交阶段</p>
+<p>准备阶段：协调者发送一个准备询问消息给所有的参与者，然后等待响应。参与者在收到协调者的消息后开始执行事务操作（比如增删改），并记录自身的数据库日志。协调者根据自身的事务操作结果响应协调者。<br>
+提交阶段：协调者收到所有参与者的响应消息后，根据响应结果来判断这些事务应该提交还是回滚，然后发送消息给所有的参与者执行最后的事务操作。参与者在收到消息后进行事务提交或者回滚。<br>
+三阶段提交：协调者和参与者都引入的超时机制<br>
+协调者首先先所有参与者发出询问消息，是否可以开始事务，参与者收到消息，正常情况下会返回确认消息。协调者收到所有参与者的确认消息后，向所有参与者发出预提交消息进入准备阶段，参与者在收到消息后，开始执行事务操作，同时记录自己的事务日志，然后将事务执行的结果返回给协调者。协调者在收到所有参与者的确认消息后，判断所有的参与的事务操作已经成功，发出提交请求消息，并进入提交阶段，参与者在收到提交消息后（如果没有收到消息或者超时了，默认提交事务），开始提交自己的事务。提交完成后，参与者向协调者发出确认响应。协调者在收到所有参与者的确认消息后，完成事务。</p>
+<h3 id="2-dubbo是如何利用接口就可以通信的">2. dubbo是如何利用接口就可以通信的</h3>
+<p>首先，dubbo服务分为调用方和服务方，调用方与服务方通过socket保持通信，在调用方，保存了一份服务方的服务接口描述信息，调用方在调用远端服务时，通过异步通信的方式将要调用的服务接口信息和参数传递给服务方，服务方在获取到接口信息后，在本地找到该接口的实现实例，然后将参数传入执行指定的方法，最后将方法的返回值再通过异步通信的方式返回给调用方，这样就能实现接口的远程调用了。</p>
+<h3 id="3分布式锁如何设计">3.分布式锁如何设计</h3>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[java多线程]]></title>
+        <id>https://www.52zhoujia.cn/post/java-duo-xian-cheng/</id>
+        <link href="https://www.52zhoujia.cn/post/java-duo-xian-cheng/">
+        </link>
+        <updated>2021-11-09T09:57:50.000Z</updated>
+        <content type="html"><![CDATA[<h3 id="1java实现多线程有哪几种方式">1.Java实现多线程有哪几种方式。</h3>
+<ol>
+<li>继承Thread，直接实例化</li>
+<li>实现Runnable接口，通过Thread创建线程</li>
+<li>实现Callable接口，通过FutureTask创建线程</li>
+</ol>
+<p>###2.Callable和Future的了解。<br>
+Callable是一个多线程的接口，有它创建的多线成可以返回线程的执行结果，而执行结果可以被Future拿到。<br>
+Future的作用：<br>
+1.中断线程的执行<br>
+2.判断是否执行完<br>
+3.获取执行结果（会阻塞）</p>
+<h3 id="3线程池的参数有哪些在线程池创建一个线程的过程">3.线程池的参数有哪些，在线程池创建一个线程的过程。</h3>
+<p>1.核心线程数量<br>
+2.空闲线程存活时间<br>
+3.最大线程数量<br>
+4.阻塞队列<br>
+5.拒绝策略<br>
+线程池初始化时会创建核心线程数量大小的线程，当提交任务数量超过核心线程数量时会再创建新的线程到线程池中来，但是不会超过最大线程数量，但任务数量超过最大线程数量时将任务提交到阻塞队列，当阻塞队列也满了的时候，会选择对应的拒绝策略拒绝该任务的提交。</p>
+<h3 id="4volitile关键字的作用原理">4.volitile关键字的作用，原理</h3>
+<p>作用：<br>
+1.保证内存可见性<br>
+2.禁止指令重排序。 （单核cpu在多线程环境下也会存在cpu在线程之间切换执行，共享变量未能及时更新）</p>
+<p>每个线程在自己工作的时候都会有一个工作内存，当某个内存工作时，会将所需要的变量copy一份放到自己的工作内存中，当有一个线程修改了某个变量的值，还没来得及写入主存，其他线程并不知道这个变量已经改变了，还是使用着各自工作区的变量copy值。<br>
+当使用valotile修饰之后；<br>
+1.强制将修改后变量的值写入到主存中<br>
+2.使该变量在不同工作区的缓存无效<br>
+3.强制从主存中获取值，从主存中获取值时会有总线锁，只有在变量值写入完成后才能读取到，否则一直等待</p>
+<h3 id="5synchronized关键字的用法优缺点">5.synchronized关键字的用法，优缺点。</h3>
+<p>synchronized是一个同步互斥锁，可以修饰方法，代码块，静态方法，类（锁定类，不是修饰），不能被继承，不能修饰接口，不能修饰构造函数。<br>
+修饰一个代码块：进入同步代码块时获取锁，该锁可以是当前对象，也可以是其他对象<br>
+修饰一个方法：锁住当前对象，当线程要执行同步方法时，必须先获得该对象的锁。当一个线程获得了该对象的锁，执行同步方法时，其他线程如果想要执行其他的同步方法，也需要获取该对线的锁，否则等待阻塞。<br>
+修饰一个静态方法：锁定的是这个类的所有对象<br>
+修饰一个类：锁定的是这个类所有的对象<br>
+缺点：不能跨越多个对象，在等待锁的同时不能放弃，直到成功，没有超时限制，不能中断阻塞</p>
+<h3 id="6abc三个线程如何保证顺序执行">6.ABC三个线程如何保证顺序执行。</h3>
+<p>1.使用线程池SingleThreadPool<br>
+2.使用同步<br>
+3.使用join，在线程内部调用上一个线程的join方法（比如在线程B中调用了线程A的Join()方法，直到线程A执行完毕后，才会继续执行线程B。）<br>
+4：使用Callable获取执行结果，当上一个线程执行完毕再执行下一个线程<br>
+5.使用blockingQueue</p>
+<h3 id="7sleep和wait的区别">7.sleep和wait的区别。</h3>
+<p>wait方法和sleep方法的区别：wait是对象的方法，在失去cpu时间的同时，会释放同步锁。而sleep是线程静态方法，不会占用cpu，但是不会释放锁资源</p>
+<h3 id="8notify和notifyall的区别">8.notify和notifyall的区别。</h3>
+<p>notify只会唤醒所有wait线程的随机一个，而notifyall会唤醒所有wait的线程</p>
+<h3 id="9threadlocal的了解实现原理">9.ThreadLocal的了解，实现原理</h3>
+<p>Threadlocal提供了一个线程的局部变量，它所存储的值只有当前线程能够访问得到，其他线程访问不到。</p>
+<h3 id="10线程的状态都有哪些">10.线程的状态都有哪些</h3>
+<p>新建，就绪，运行，阻塞，死亡</p>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[java基础知识]]></title>
+        <id>https://www.52zhoujia.cn/post/java-ji-chu-zhi-shi/</id>
+        <link href="https://www.52zhoujia.cn/post/java-ji-chu-zhi-shi/">
+        </link>
+        <updated>2021-11-09T09:57:22.000Z</updated>
+        <content type="html"><![CDATA[<h3 id="1hashmap的源码实现原理jdk8中对hashmap做了怎样的优化">1.HashMap的源码，实现原理，JDK8中对HashMap做了怎样的优化。</h3>
+<p>HashMap底层是通过数组加链表的方式实现的，当存在hash冲突时，将相同的hash值得数据存放在链表中，jdk8中当链表长度超过8时，会将链表转换成红黑树。</p>
+<h3 id="2haspmap扩容是怎样扩容的为什么都是2的n次幂的大小">2.HaspMap扩容是怎样扩容的，为什么都是2的N次幂的大小。</h3>
+<p>新建一个数组，复制原数据到新数组，将原有的链表引用也一并复制过来<br>
+为了让数据分布均匀，减少hash冲突，hash值得分布范围比较大，但是实际上不会分配这么大的一个数组来存放，需要将hash通过取模运算来获得数组中实际的索引值，而为了优化性能，采用的位运算，索引=(n - 1) &amp; hash，而n是数组长度，所以n必须是n的幂次方</p>
+<h3 id="3hashmaphashtableconcurrenthashmap的区别">3.HashMap，HashTable，ConcurrentHashMap的区别。</h3>
+<p>HashMap非线程安全<br>
+HashTable线程安全，全表都加了同步锁<br>
+ConcurrentHashMap是线程安全的，JDK1.7以前是采用的分段锁，18以后是使用synchronized只锁定当前链表或红黑二叉树的首节点</p>
+<h3 id="4极高并发下hashtable和concurrenthashmap哪个性能更好为什么如何实现的">4.极高并发下HashTable和ConcurrentHashMap哪个性能更好，为什么，如何实现的。</h3>
+<h3 id="hashmap在高并发下如果没有处理线程安全会有怎样的安全隐患具体表现是什么">HashMap在高并发下如果没有处理线程安全会有怎样的安全隐患，具体表现是什么。</h3>
+<p>如果发生扩容，复制链表时如果发生并发可能导致陷入死循环</p>
+<h3 id="5接口和抽象类的区别">5.接口和抽象类的区别</h3>
+<p>一个类可以实现多个接口，但是只能继承一个抽象类<br>
+接口中的方法都是public的方法（java8允许有实现方法，使用default修饰），而抽线类中可以有抽象方法，也可以有实现方法</p>
+<h3 id="6动态代理的两种方式以及区别">6.动态代理的两种方式，以及区别。</h3>
+<p>JDK动态代理：利用java反射来实现，而且必须提供接口<br>
+CGlib动态代理：利用动态生成的字节码来实现代理，没有接口的限制，</p>
+<h3 id="7java序列化的方式">7.Java序列化的方式。</h3>
+<p>实现Serializable接口隐式序列化：自动序列化所有非static和transient修饰的成员变量<br>
+实现Externalizable接口显示序列化：手动编写序列化规则<br>
+json序列化：用jackson或者fastJson将java对象序列化成json字符串和将json字符串反序列化成java对象<br>
+ProtoBuff序列化：以二进制的方式存储数据</p>
+<h3 id="8传值和传引用的区别java是怎么样的有没有传值引用">8.传值和传引用的区别，Java是怎么样的，有没有传值引用。</h3>
+<p>1.传值：传递的是值的副本，方法中对副本的修改，不会影响到调用方<br>
+2.传引用：传递的是引用的副本，但是副本与原引用所指向的是同一个内存区域，在方法内部通过引用副本对对象进行操作时，会影响到调用方，如果对引用副本进行修改时不会影响到调用方（比如将副本引用设为null或者引用其他地址）<br>
+3.java只有值传递，没有引用传递</p>
+<h3 id="9一个arraylist在循环过程中删除会不会出问题为什么">9.一个ArrayList在循环过程中删除，会不会出问题，为什么。</h3>
+<p>如果通过索引循环，使用arrayList自带的删除方法，有可能存在相邻元素没有删除干净的问题以及数组下标越界问题<br>
+如果通过迭代器循环，还是使用ArrayList自带删除方法，会报同步删除异常问题，原因是ArrayList与迭代器里面有数据没有同步</p>
+<h3 id="9transactional注解在什么情况下会失效为什么">9.@transactional注解在什么情况下会失效，为什么</h3>
+<p>1.方法不是public，必须public方法才会生效<br>
+2.抛出检查性异常或者异常被捕获了。默认情况下，Spring会对运行时异常进行事务回滚<br>
+3.事务类型设置为只读<br>
+4.事务是否开启</p>
+]]></content>
+    </entry>
+</feed>

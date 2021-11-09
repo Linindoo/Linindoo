@@ -1,0 +1,356 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>springboot集成Swagger的问题及解决 | Gridea</title>
+<link rel="shortcut icon" href="https://www.52zhoujia.cn/favicon.ico?v=1636452769531">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://www.52zhoujia.cn/styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="springboot集成Swagger的问题及解决 | Gridea - Atom Feed" href="https://www.52zhoujia.cn/atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+
+    <meta name="description" content="前言
+Swagger是一个自动化的文档生成器，通过注解的方式就能快速地生成api接口文档，并且还能提供一个简单的接口测试入口，方便前后端的开发交互
+通过maven引入Swagger依赖
+&lt;dependency&gt;
+    &lt;..." />
+    <meta name="keywords" content="" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://www.52zhoujia.cn">
+  <img class="avatar" src="https://www.52zhoujia.cn/images/avatar.png?v=1636452769531" alt="">
+  </a>
+  <h1 class="site-title">
+    Gridea
+  </h1>
+  <p class="site-description">
+    温故而知新
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="/archives" class="menu">
+          归档
+        </a>
+      
+    
+      
+        <a href="/tags" class="menu">
+          标签
+        </a>
+      
+    
+      
+        <a href="/post/about" class="menu">
+          关于
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              springboot集成Swagger的问题及解决
+            </h2>
+            <div class="post-info">
+              <span>
+                2021-11-09
+              </span>
+              <span>
+                7 min read
+              </span>
+              
+            </div>
+            
+            <div class="post-content-wrapper">
+              <div class="post-content">
+                <h3 id="前言">前言</h3>
+<p>Swagger是一个自动化的文档生成器，通过注解的方式就能快速地生成api接口文档，并且还能提供一个简单的接口测试入口，方便前后端的开发交互</p>
+<h3 id="通过maven引入swagger依赖">通过maven引入Swagger依赖</h3>
+<pre><code>&lt;dependency&gt;
+    &lt;groupId&gt;io.springfox&lt;/groupId&gt;
+    &lt;artifactId&gt;springfox-swagger2&lt;/artifactId&gt;
+    &lt;version&gt;2.7.0&lt;/version&gt;
+&lt;/dependency&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;io.springfox&lt;/groupId&gt;
+    &lt;artifactId&gt;springfox-swagger-ui&lt;/artifactId&gt;
+    &lt;version&gt;2.7.0&lt;/version&gt;
+&lt;/dependency&gt;
+</code></pre>
+<h3 id="配置swagger">配置Swagger</h3>
+<p>创建swagger的配置Bean</p>
+<pre><code>@Configuration
+@EnableSwagger2
+public class Swagger2Configuration {
+    @Bean
+    public Docket productApi() {
+        return new Docket(DocumentationType.SWAGGER_2)
+                .apiInfo(apiInfo())
+                .select()
+                .apis(RequestHandlerSelectors.withMethodAnnotation(ApiOperation.class))
+                .paths(PathSelectors.any())
+                .build();
+    }
+
+    private ApiInfo apiInfo() {
+        return new ApiInfoBuilder().title(&quot;Swagger with springboot&quot;)
+                .description(&quot;zcms的开发文档&quot;)
+                .version(&quot;2.0&quot;)
+                .build();
+    }
+}
+</code></pre>
+<h3 id="启动springboot">启动Springboot</h3>
+<p>对于springboot的启动就不多说了，相信网上已经有许多这方面的教程了。如果一切顺利，那么打开网址<a href="http://localhost:8080/swagger-ui.html">http://localhost:8080/swagger-ui.html</a>就能看到你想要的接口文档了<br>
+然而事情往往没有这么顺利</p>
+<h3 id="问题一">问题一</h3>
+<h4 id="浏览器打开swagger-ui首页出现了一个弹出框弹出框的内容为">浏览器打开Swagger-ui首页出现了一个弹出框，弹出框的内容为：</h4>
+<blockquote>
+<p>Unable to infer base url. This is common when using dynamic servlet registration or when the API is behind an API Gateway. The base url is the root of where all the swagger resources are served. For e.g. if the api is available at http://example.org/api/v2/api-docs then the base url is http://example.org/api/. Please enter the location manually:<br>
+接下来就是一个简单的输入框，输入框的内容是当前页面的地址</p>
+</blockquote>
+<h4 id="分析">分析</h4>
+<p>通过浏览器控制台查看数据发现，在弹出框的确认后，会发送一个异步请求，而这个异步请求的结果返回失败，异步请求的路径就是输入框中的值，那么可以推断所谓的弹出框是为了让用户输入正确的请求地址，如果请求一直失败，它会一直弹框</p>
+<h4 id="解决">解决</h4>
+<p>将输入框中的内容修改为正确的请求根路径，一般为网站根路径</p>
+<h3 id="问题二">问题二</h3>
+<h5 id="如果问题到这一步就解决了那再好不过了然而事情却没有那么简单">如果问题到这一步就解决了，那再好不过了，然而事情却没有那么简单</h5>
+<p>请求路径虽然正确了，但是请求没有返回预期的结果，提示没有权限</p>
+<h4 id="分析-2">分析</h4>
+<p>顺着提示的线索，查看项目发现该项目中使用了spring security进行了用户权限校验</p>
+<h4 id="解决-2">解决</h4>
+<pre><code>@EnableWebSecurity
+@EnableGlobalMethodSecurity(prePostEnabled = true)
+public class SwaggerSecurityConfig extends WebSecurityConfigurerAdapter {
+
+    @Override
+    public void configure(WebSecurity web) throws Exception {
+        //allow Swagger URL to be accessed without authentication
+        web.ignoring().antMatchers(&quot;/v2/api-docs&quot;,//swagger api json
+                &quot;/swagger-resources/configuration/ui&quot;,//用来获取支持的动作
+                &quot;/swagger-resources&quot;,//用来获取api-docs的URI
+                &quot;/swagger-resources/configuration/security&quot;,//安全选项
+                &quot;/swagger-ui.html&quot;);
+    }
+}
+</code></pre>
+<p>将路径添加到security的白名单中，不同的项目视情况而定，目的是要让这几个路径开放权限</p>
+<h3 id="问题三">问题三</h3>
+<blockquote>
+<p>fetching resource list: http://localhost:3000/api/api-docs<br>
+?group=api; Please wait.<br>
+现在已经成功地进入了首页，没有再弹框了，但是页面显示正在进行异步请求一直保持在这里，很久没有变化，查看控制台发现请求已经失败了</p>
+</blockquote>
+<p>因为项目中对前端文档的展示进行了一些个性化的DIY，所以文档路径不是默认的<code>/v2/api-docs</code></p>
+<h4 id="分析-3">分析</h4>
+<p>首先这是swagger请求接口，第一个想到的就是将这个路径添加进白名单里，但是转念一想，鬼才知道还有多少个路径要加白名单呢，难道没有一个一劳永逸的办法吗？</p>
+<h5 id="为了解决这个问题首先要找到这个接口所在的控制器看它的源码经过一番查找终于在springfox-swaggerjar依赖中找到了位置在springfoxdocumentationswagger2web包下面的swagger2controllerclass文件中">为了解决这个问题，首先要找到这个接口所在的控制器看它的源码，经过一番查找，终于在<code>springfox-swagger</code>jar依赖中找到了，位置在<code>springfox.documentation.swagger2.web</code>包下面的<code>Swagger2Controller.class</code>文件中。</h5>
+<h5 id="源码如下">源码如下</h5>
+<pre><code> public static final String DEFAULT_URL = &quot;/v2/api-docs&quot;;
+    private static final String HAL_MEDIA_TYPE = &quot;application/hal+json&quot;;
+    private final String hostNameOverride;
+    private final DocumentationCache documentationCache;
+    private final ServiceModelToSwagger2Mapper mapper;
+    private final JsonSerializer jsonSerializer;
+
+    @Autowired
+    public Swagger2Controller(Environment environment, DocumentationCache documentationCache, ServiceModelToSwagger2Mapper mapper, JsonSerializer jsonSerializer) {
+        this.hostNameOverride = environment.getProperty(&quot;springfox.documentation.swagger.v2.host&quot;, &quot;DEFAULT&quot;);
+        this.documentationCache = documentationCache;
+        this.mapper = mapper;
+        this.jsonSerializer = jsonSerializer;
+    }
+
+    @RequestMapping(
+        value = {&quot;/v2/api-docs&quot;},
+        method = {RequestMethod.GET},
+        produces = {&quot;application/json&quot;, &quot;application/hal+json&quot;}
+    )
+    @PropertySourcedMapping(
+        value = &quot;${springfox.documentation.swagger.v2.path}&quot;,
+        propertyKey = &quot;springfox.documentation.swagger.v2.path&quot;
+    )
+    @ResponseBody
+    public ResponseEntity&lt;Json&gt; getDocumentation(@RequestParam(value = &quot;group&quot;,required = false) String swaggerGroup, HttpServletRequest servletRequest) {
+        String groupName = (String)Optional.fromNullable(swaggerGroup).or(&quot;default&quot;);
+        Documentation documentation = this.documentationCache.documentationByGroup(groupName);
+        if (documentation == null) {
+            return new ResponseEntity(HttpStatus.NOT_FOUND);
+        } else {
+            Swagger swagger = this.mapper.mapDocumentation(documentation);
+            UriComponents uriComponents = HostNameProvider.componentsFrom(servletRequest, swagger.getBasePath());
+            swagger.basePath(Strings.isNullOrEmpty(uriComponents.getPath()) ? &quot;/&quot; : uriComponents.getPath());
+            if (Strings.isNullOrEmpty(swagger.getHost())) {
+                swagger.host(this.hostName(uriComponents));
+            }
+
+            return new ResponseEntity(this.jsonSerializer.toJson(swagger), HttpStatus.OK);
+        }
+    }
+
+    private String hostName(UriComponents uriComponents) {
+        if (&quot;DEFAULT&quot;.equals(this.hostNameOverride)) {
+            String host = uriComponents.getHost();
+            int port = uriComponents.getPort();
+            return port &gt; -1 ? String.format(&quot;%s:%d&quot;, host, port) : host;
+        } else {
+            return this.hostNameOverride;
+        }
+    }
+</code></pre>
+<p>可以看到<code>/v2/api-docs</code>是它默认的文档请求路径，继续往下看可以发现在<code>@RequestMapping</code>注解下面还有一排代码</p>
+<pre><code>@PropertySourcedMapping(
+        value = &quot;${springfox.documentation.swagger.v2.path}&quot;,
+        propertyKey = &quot;springfox.documentation.swagger.v2.path&quot;
+    )
+</code></pre>
+<p>而<code>PropertySourcedMapping</code>的作用就是从配置文件中获取数据，这是不是就意味着我们可以通过配置文件来动态的修改文档路径呢</p>
+<h4 id="解决-3">解决</h4>
+<p>在 spring-boot的配置文件<code>application.properties</code>中添加如下配置</p>
+<pre><code>springfox.documentation.swagger.v2.path=/api/api-docs
+
+</code></pre>
+<p>重启后一切果然如预想中的那样</p>
+
+              </div>
+              <div class="toc-container">
+                <ul class="markdownIt-TOC">
+<li>
+<ul>
+<li>
+<ul>
+<li><a href="#%E5%89%8D%E8%A8%80">前言</a></li>
+<li><a href="#%E9%80%9A%E8%BF%87maven%E5%BC%95%E5%85%A5swagger%E4%BE%9D%E8%B5%96">通过maven引入Swagger依赖</a></li>
+<li><a href="#%E9%85%8D%E7%BD%AEswagger">配置Swagger</a></li>
+<li><a href="#%E5%90%AF%E5%8A%A8springboot">启动Springboot</a></li>
+<li><a href="#%E9%97%AE%E9%A2%98%E4%B8%80">问题一</a>
+<ul>
+<li><a href="#%E6%B5%8F%E8%A7%88%E5%99%A8%E6%89%93%E5%BC%80swagger-ui%E9%A6%96%E9%A1%B5%E5%87%BA%E7%8E%B0%E4%BA%86%E4%B8%80%E4%B8%AA%E5%BC%B9%E5%87%BA%E6%A1%86%E5%BC%B9%E5%87%BA%E6%A1%86%E7%9A%84%E5%86%85%E5%AE%B9%E4%B8%BA">浏览器打开Swagger-ui首页出现了一个弹出框，弹出框的内容为：</a></li>
+<li><a href="#%E5%88%86%E6%9E%90">分析</a></li>
+<li><a href="#%E8%A7%A3%E5%86%B3">解决</a></li>
+</ul>
+</li>
+<li><a href="#%E9%97%AE%E9%A2%98%E4%BA%8C">问题二</a><br>
+*
+<ul>
+<li><a href="#%E5%A6%82%E6%9E%9C%E9%97%AE%E9%A2%98%E5%88%B0%E8%BF%99%E4%B8%80%E6%AD%A5%E5%B0%B1%E8%A7%A3%E5%86%B3%E4%BA%86%E9%82%A3%E5%86%8D%E5%A5%BD%E4%B8%8D%E8%BF%87%E4%BA%86%E7%84%B6%E8%80%8C%E4%BA%8B%E6%83%85%E5%8D%B4%E6%B2%A1%E6%9C%89%E9%82%A3%E4%B9%88%E7%AE%80%E5%8D%95">如果问题到这一步就解决了，那再好不过了，然而事情却没有那么简单</a></li>
+<li><a href="#%E5%88%86%E6%9E%90-2">分析</a></li>
+<li><a href="#%E8%A7%A3%E5%86%B3-2">解决</a></li>
+</ul>
+</li>
+<li><a href="#%E9%97%AE%E9%A2%98%E4%B8%89">问题三</a>
+<ul>
+<li><a href="#%E5%88%86%E6%9E%90-3">分析</a>
+<ul>
+<li><a href="#%E4%B8%BA%E4%BA%86%E8%A7%A3%E5%86%B3%E8%BF%99%E4%B8%AA%E9%97%AE%E9%A2%98%E9%A6%96%E5%85%88%E8%A6%81%E6%89%BE%E5%88%B0%E8%BF%99%E4%B8%AA%E6%8E%A5%E5%8F%A3%E6%89%80%E5%9C%A8%E7%9A%84%E6%8E%A7%E5%88%B6%E5%99%A8%E7%9C%8B%E5%AE%83%E7%9A%84%E6%BA%90%E7%A0%81%E7%BB%8F%E8%BF%87%E4%B8%80%E7%95%AA%E6%9F%A5%E6%89%BE%E7%BB%88%E4%BA%8E%E5%9C%A8springfox-swaggerjar%E4%BE%9D%E8%B5%96%E4%B8%AD%E6%89%BE%E5%88%B0%E4%BA%86%E4%BD%8D%E7%BD%AE%E5%9C%A8springfoxdocumentationswagger2web%E5%8C%85%E4%B8%8B%E9%9D%A2%E7%9A%84swagger2controllerclass%E6%96%87%E4%BB%B6%E4%B8%AD">为了解决这个问题，首先要找到这个接口所在的控制器看它的源码，经过一番查找，终于在<code>springfox-swagger</code>jar依赖中找到了，位置在<code>springfox.documentation.swagger2.web</code>包下面的<code>Swagger2Controller.class</code>文件中。</a></li>
+<li><a href="#%E6%BA%90%E7%A0%81%E5%A6%82%E4%B8%8B">源码如下</a></li>
+</ul>
+</li>
+<li><a href="#%E8%A7%A3%E5%86%B3-3">解决</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://www.52zhoujia.cn/post/restful-jie-kou-she-ji-yu-she-xiang/">
+              <h3 class="post-title">
+                restful接口设计与设想
+              </h3>
+            </a>
+          </div>
+        
+
+        
+
+        <div class="site-footer">
+  Powered by <a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a>
+  <a class="rss" href="https://www.52zhoujia.cn/atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>

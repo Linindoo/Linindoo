@@ -1,0 +1,189 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>tomcat使用问题汇总 | Gridea</title>
+<link rel="shortcut icon" href="https://www.52zhoujia.cn/favicon.ico?v=1636452769531">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://www.52zhoujia.cn/styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="tomcat使用问题汇总 | Gridea - Atom Feed" href="https://www.52zhoujia.cn/atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+
+    <meta name="description" content="1.电脑上有多个版本的tomcat，但是通过startup.bat批处理脚本却只能启动某个固定的tomcat
+电脑环境是win10，出现这种情况很有可能是环境变量的锅，检查系统环境变量发现有一个CATALINA_HOME的变量，其变量值就是..." />
+    <meta name="keywords" content="" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://www.52zhoujia.cn">
+  <img class="avatar" src="https://www.52zhoujia.cn/images/avatar.png?v=1636452769531" alt="">
+  </a>
+  <h1 class="site-title">
+    Gridea
+  </h1>
+  <p class="site-description">
+    温故而知新
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="/archives" class="menu">
+          归档
+        </a>
+      
+    
+      
+        <a href="/tags" class="menu">
+          标签
+        </a>
+      
+    
+      
+        <a href="/post/about" class="menu">
+          关于
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              tomcat使用问题汇总
+            </h2>
+            <div class="post-info">
+              <span>
+                2021-11-09
+              </span>
+              <span>
+                1 min read
+              </span>
+              
+            </div>
+            
+            <div class="post-content-wrapper">
+              <div class="post-content">
+                <h4 id="1电脑上有多个版本的tomcat但是通过startupbat批处理脚本却只能启动某个固定的tomcat">1.电脑上有多个版本的tomcat，但是通过startup.bat批处理脚本却只能启动某个固定的tomcat</h4>
+<p>电脑环境是win10，出现这种情况很有可能是环境变量的锅，检查系统环境变量发现有一个<code>CATALINA_HOME</code>的变量，其变量值就是那个固定的tomcat目录，所以只要修改这个环境变量保存就可以了</p>
+<h4 id="2tomcat怎么将项目发布到根目录">2.tomcat怎么将项目发布到根目录</h4>
+<p>首先找到tomcat的conf目录下面的service.xml文件，然后进去编辑，在最下面的<Host>标签中添加如下标签</p>
+<pre><code>&lt;Context path=&quot;&quot; docBase=&quot;你的项目绝对路径&quot; debug=&quot;0&quot;  
+reloadable=&quot;false&quot; crossContext=&quot;true&quot;&gt;&lt;/Context&gt;
+</code></pre>
+<p>最后保存重启</p>
+
+              </div>
+              <div class="toc-container">
+                <ul class="markdownIt-TOC">
+<li>
+<ul>
+<li>
+<ul>
+<li>
+<ul>
+<li><a href="#1%E7%94%B5%E8%84%91%E4%B8%8A%E6%9C%89%E5%A4%9A%E4%B8%AA%E7%89%88%E6%9C%AC%E7%9A%84tomcat%E4%BD%86%E6%98%AF%E9%80%9A%E8%BF%87startupbat%E6%89%B9%E5%A4%84%E7%90%86%E8%84%9A%E6%9C%AC%E5%8D%B4%E5%8F%AA%E8%83%BD%E5%90%AF%E5%8A%A8%E6%9F%90%E4%B8%AA%E5%9B%BA%E5%AE%9A%E7%9A%84tomcat">1.电脑上有多个版本的tomcat，但是通过startup.bat批处理脚本却只能启动某个固定的tomcat</a></li>
+<li><a href="#2tomcat%E6%80%8E%E4%B9%88%E5%B0%86%E9%A1%B9%E7%9B%AE%E5%8F%91%E5%B8%83%E5%88%B0%E6%A0%B9%E7%9B%AE%E5%BD%95">2.tomcat怎么将项目发布到根目录</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://www.52zhoujia.cn/post/fen-bu-shi/">
+              <h3 class="post-title">
+                分布式
+              </h3>
+            </a>
+          </div>
+        
+
+        
+
+        <div class="site-footer">
+  Powered by <a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a>
+  <a class="rss" href="https://www.52zhoujia.cn/atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>
