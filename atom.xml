@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https:// linindoo.github.io</id>
     <title>Gridea</title>
-    <updated>2021-11-17T02:52:49.389Z</updated>
+    <updated>2021-11-17T09:41:57.008Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https:// linindoo.github.io"/>
     <link rel="self" href="https:// linindoo.github.io/atom.xml"/>
@@ -10,6 +10,110 @@
     <logo>https:// linindoo.github.io/images/avatar.png</logo>
     <icon>https:// linindoo.github.io/favicon.ico</icon>
     <rights>All rights reserved 2021, Gridea</rights>
+    <entry>
+        <title type="html"><![CDATA[记一次锁表的事故]]></title>
+        <id>https:// linindoo.github.io/post/ji-yi-ci-suo-biao-de-shi-gu/</id>
+        <link href="https:// linindoo.github.io/post/ji-yi-ci-suo-biao-de-shi-gu/">
+        </link>
+        <updated>2021-11-17T07:40:46.000Z</updated>
+        <content type="html"><![CDATA[<h4 id="前言">前言</h4>
+<p>客户反馈说，测试环境数据同步出现异常，接口超时无响应</p>
+<h4 id="事故排查">事故排查</h4>
+<ol>
+<li>检查测试环境接口，确实存在超时的情况，然后检查服务器日志， 发现一条sql语句一直超时，简单排除了网络和数据库的问题，初步推断是这张表被锁住了</li>
+<li>连接数据库，查看数据库表锁，发现确实存在锁住的情况而且长时间没有释放。</li>
+</ol>
+<h4 id="bug复现">bug复现</h4>
+<ol>
+<li>定义一个接口，这个接口使用spring的事务</li>
+</ol>
+<pre><code>@RestController
+@RequestMapping(&quot;/lock&quot;)
+public class SQLController {
+    @Autowired
+    private MaxNoService maxNoService;
+    @Autowired
+    private PlatformTransactionManager transactionManager;
+
+    @GetMapping(&quot;/test&quot;)
+    @Transactional(rollbackFor = Exception.class)
+    public String lock() {
+        maxNoService.getMaxID(&quot;test&quot;, &quot;ID&quot;, 1);
+        DefaultTransactionDefinition transactionDefinition = new DefaultTransactionDefinition();
+        transactionDefinition.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+        TransactionStatus transactionStatus = transactionManager.getTransaction(transactionDefinition);
+        try {
+            maxNoService.getMaxID(&quot;test&quot;, &quot;ID&quot;, 1);
+            // 其他表的操作
+            transactionManager.commit(transactionStatus);
+        } catch (Exception e) {
+            transactionManager.rollback(transactionStatus);
+        }
+        return &quot;over&quot;;
+    }
+
+}
+</code></pre>
+<ol start="2">
+<li>定义数据库处理业务</li>
+</ol>
+<pre><code>@Service
+public class MaxNoService {
+
+    @Autowired
+    private ZdmaxnoRepository mapper;
+
+    @Transactional(isolation = Isolation.READ_COMMITTED)
+    public long getMaxID(String noType, String subType, int size) {
+        if (size &lt; 1) {
+            size = 1;
+        }
+        Long maxValue = mapper.selectForUpdate(noType, subType);
+        if (maxValue != null) {
+            long t = maxValue.longValue() + size;
+            mapper.updateMaxNo(t, noType, subType);
+            return t;
+        } else {
+            Zdmaxno maxno = new Zdmaxno();
+            PeopleKey peopleKey = new PeopleKey();
+            peopleKey.setNo_sub_type(subType);
+            peopleKey.setNo_type(noType);
+            maxno.setPeopleKey(peopleKey);
+            maxno.setNo_max_value((long) size);
+            maxno.setLength(10L);
+            mapper.save(maxno);
+            return size;
+        }
+    }
+}
+</code></pre>
+<pre><code>public interface ZdmaxnoRepository extends JpaRepository&lt;Zdmaxno, PeopleKey&gt; {
+    @Query(&quot;select no_max_value from zdmaxno&quot; +
+            &quot;    where no_type = ?1&quot; +
+            &quot;    and no_sub_type = ?2&quot;)
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    Long selectForUpdate(String noType, String subType);
+
+    @Query(&quot;update zdmaxno set no_max_value = ?1&quot; +
+            &quot;    where no_type= ?2&quot; +
+            &quot;    and no_sub_type= ?3&quot;)
+    @Modifying
+    Integer updateMaxNo(long t, String noType, String subType);
+}
+</code></pre>
+<p>这里的 <code>Lock</code> 就是 <code>for update</code>,为这条记录的写入加锁</p>
+<h4 id="原因分析">原因分析</h4>
+<ol>
+<li><code>for update</code> 给表记录加上了写入锁，这样的话只有这个加锁的连接才可以写入记录，其他连接想要操作这条记录只能等待。</li>
+<li>spring的事务在默认情况下，一个事务共用一个连接，首先第一个事务获取为这张表加上了锁，因为事务还未提交，所以锁还未释放。然后通过手动事务的方式创建了一个新的事务，这个事务使用新的连接去操作这张表，但是因为这张表已经被锁住，它就只能阻塞等待，因为它的阻塞等待，上一个事务无法提交，所以只能等待超时抛出异常，所有事务都处理失败。</li>
+</ol>
+<h4 id="解决方法">解决方法</h4>
+<ol>
+<li>因为这里的业务的处理逻辑是想获取全局唯一的最大ID，所以完全可以把手动提交事务中最大ID的获取提取到第一个事务中，这样就不会死锁了</li>
+<li>将子事务的传播行为改成  <code>PROPAGATION_REQUIRED</code>,这样当前事务就会加入到前一个事务，但是这里业务考虑的是希望现在直接提交，而不是跟随第一个事务一起提交，所以这里不合适</li>
+</ol>
+]]></content>
+    </entry>
     <entry>
         <title type="html"><![CDATA[Docker之Dockerfile学习笔记]]></title>
         <id>https:// linindoo.github.io/post/docker-zhi-dockerfile-xue-xi-bi-ji/</id>
@@ -508,49 +612,6 @@ Future的作用：<br>
 <p>Threadlocal提供了一个线程的局部变量，它所存储的值只有当前线程能够访问得到，其他线程访问不到。</p>
 <h3 id="10线程的状态都有哪些">10.线程的状态都有哪些</h3>
 <p>新建，就绪，运行，阻塞，死亡</p>
-]]></content>
-    </entry>
-    <entry>
-        <title type="html"><![CDATA[java基础知识]]></title>
-        <id>https:// linindoo.github.io/post/java-ji-chu-zhi-shi/</id>
-        <link href="https:// linindoo.github.io/post/java-ji-chu-zhi-shi/">
-        </link>
-        <updated>2021-11-09T09:57:22.000Z</updated>
-        <content type="html"><![CDATA[<h3 id="1hashmap的源码实现原理jdk8中对hashmap做了怎样的优化">1.HashMap的源码，实现原理，JDK8中对HashMap做了怎样的优化。</h3>
-<p>HashMap底层是通过数组加链表的方式实现的，当存在hash冲突时，将相同的hash值得数据存放在链表中，jdk8中当链表长度超过8时，会将链表转换成红黑树。</p>
-<h3 id="2haspmap扩容是怎样扩容的为什么都是2的n次幂的大小">2.HaspMap扩容是怎样扩容的，为什么都是2的N次幂的大小。</h3>
-<p>新建一个数组，复制原数据到新数组，将原有的链表引用也一并复制过来<br>
-为了让数据分布均匀，减少hash冲突，hash值得分布范围比较大，但是实际上不会分配这么大的一个数组来存放，需要将hash通过取模运算来获得数组中实际的索引值，而为了优化性能，采用的位运算，索引=(n - 1) &amp; hash，而n是数组长度，所以n必须是n的幂次方</p>
-<h3 id="3hashmaphashtableconcurrenthashmap的区别">3.HashMap，HashTable，ConcurrentHashMap的区别。</h3>
-<p>HashMap非线程安全<br>
-HashTable线程安全，全表都加了同步锁<br>
-ConcurrentHashMap是线程安全的，JDK1.7以前是采用的分段锁，18以后是使用synchronized只锁定当前链表或红黑二叉树的首节点</p>
-<h3 id="4极高并发下hashtable和concurrenthashmap哪个性能更好为什么如何实现的">4.极高并发下HashTable和ConcurrentHashMap哪个性能更好，为什么，如何实现的。</h3>
-<h3 id="hashmap在高并发下如果没有处理线程安全会有怎样的安全隐患具体表现是什么">HashMap在高并发下如果没有处理线程安全会有怎样的安全隐患，具体表现是什么。</h3>
-<p>如果发生扩容，复制链表时如果发生并发可能导致陷入死循环</p>
-<h3 id="5接口和抽象类的区别">5.接口和抽象类的区别</h3>
-<p>一个类可以实现多个接口，但是只能继承一个抽象类<br>
-接口中的方法都是public的方法（java8允许有实现方法，使用default修饰），而抽线类中可以有抽象方法，也可以有实现方法</p>
-<h3 id="6动态代理的两种方式以及区别">6.动态代理的两种方式，以及区别。</h3>
-<p>JDK动态代理：利用java反射来实现，而且必须提供接口<br>
-CGlib动态代理：利用动态生成的字节码来实现代理，没有接口的限制，</p>
-<h3 id="7java序列化的方式">7.Java序列化的方式。</h3>
-<p>实现Serializable接口隐式序列化：自动序列化所有非static和transient修饰的成员变量<br>
-实现Externalizable接口显示序列化：手动编写序列化规则<br>
-json序列化：用jackson或者fastJson将java对象序列化成json字符串和将json字符串反序列化成java对象<br>
-ProtoBuff序列化：以二进制的方式存储数据</p>
-<h3 id="8传值和传引用的区别java是怎么样的有没有传值引用">8.传值和传引用的区别，Java是怎么样的，有没有传值引用。</h3>
-<p>1.传值：传递的是值的副本，方法中对副本的修改，不会影响到调用方<br>
-2.传引用：传递的是引用的副本，但是副本与原引用所指向的是同一个内存区域，在方法内部通过引用副本对对象进行操作时，会影响到调用方，如果对引用副本进行修改时不会影响到调用方（比如将副本引用设为null或者引用其他地址）<br>
-3.java只有值传递，没有引用传递</p>
-<h3 id="9一个arraylist在循环过程中删除会不会出问题为什么">9.一个ArrayList在循环过程中删除，会不会出问题，为什么。</h3>
-<p>如果通过索引循环，使用arrayList自带的删除方法，有可能存在相邻元素没有删除干净的问题以及数组下标越界问题<br>
-如果通过迭代器循环，还是使用ArrayList自带删除方法，会报同步删除异常问题，原因是ArrayList与迭代器里面有数据没有同步</p>
-<h3 id="9transactional注解在什么情况下会失效为什么">9.@transactional注解在什么情况下会失效，为什么</h3>
-<p>1.方法不是public，必须public方法才会生效<br>
-2.抛出检查性异常或者异常被捕获了。默认情况下，Spring会对运行时异常进行事务回滚<br>
-3.事务类型设置为只读<br>
-4.事务是否开启</p>
 ]]></content>
     </entry>
 </feed>
